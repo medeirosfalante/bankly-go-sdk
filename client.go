@@ -5,9 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -18,6 +23,8 @@ type Bankly struct {
 	ClientSecret string
 	Env          string
 	Token        string
+	ApiVersion   string
+	Boundary     string
 }
 
 type Error struct {
@@ -44,7 +51,85 @@ func NewClient(ClientID, ClientSecret, env string) *Bankly {
 		ClientID:     ClientID,
 		ClientSecret: ClientSecret,
 		Env:          env,
+		ApiVersion:   "1.0",
+		Boundary:     "-----011000010111000001101001",
 	}
+
+}
+
+func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, documentSide string, out interface{}) (error, *Error) {
+
+	if bankly.client == nil {
+		bankly.client = &http.Client{Timeout: 60 * time.Second}
+	}
+
+	payload := &bytes.Buffer{}
+	writer := multipart.NewWriter(payload)
+	_ = writer.WriteField("documentType", documentType)
+	_ = writer.WriteField("documentSide", documentSide)
+
+	file, err := os.Open(filepathRef)
+	if err != nil {
+		return err, nil
+	}
+	defer file.Close()
+
+	contentType, err := bankly.GetFileContentType(file)
+	if err != nil {
+		return err, nil
+	}
+	mh := make(textproto.MIMEHeader)
+	mh.Set("Content-Type", contentType)
+	mh.Set("Content-Disposition", fmt.Sprintf("form-data; name=\"image\"; filename=\"%s\"", file.Name()))
+	part3, err := writer.CreatePart(mh)
+	if err != nil {
+		return err, nil
+	}
+	_, err = io.Copy(part3, file)
+	if err != nil {
+		return err, nil
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return err, nil
+	}
+	url := bankly.devProd()
+
+	endpoint := fmt.Sprintf("%s/%s", url, action)
+
+	req, err := http.NewRequest(method, endpoint, payload)
+	if err != nil {
+		return err, nil
+	}
+	_, err = bankly.RequestToken()
+	if err != nil {
+		return err, nil
+	}
+	req.Header.Add("api-version", bankly.ApiVersion)
+	req.Header.Add("Accept", "application/json")
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
+	res, err := bankly.client.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	bodyResponse, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode > 202 {
+		var errAPI Error
+		err = json.Unmarshal(bodyResponse, &errAPI)
+		if err != nil {
+			return err, nil
+		}
+		errAPI.Body = string(bodyResponse)
+		return nil, &errAPI
+	}
+	log.Printf("bodyResponse %s\n", bodyResponse)
+	err = json.Unmarshal(bodyResponse, out)
+	if err != nil {
+		return err, nil
+	}
+	return nil, nil
 }
 
 func (bankly *Bankly) Request(method, action string, body []byte, out interface{}) (error, *Error) {
@@ -65,11 +150,13 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
+	req.Header.Add("api-version", bankly.ApiVersion)
 	res, err := bankly.client.Do(req)
 	if err != nil {
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+
 	if res.StatusCode > 201 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -119,7 +206,7 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 		return nil, err
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	if res.StatusCode > 201 {
+	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
 		if err != nil {
@@ -133,4 +220,16 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	}
 	bankly.Token = tokenResponse.AccessToken
 	return &tokenResponse, nil
+}
+
+func (bankly *Bankly) GetFileContentType(out *os.File) (string, error) {
+
+	buffer := make([]byte, 512)
+	_, err := out.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+	contentType := http.DetectContentType(buffer)
+
+	return contentType, nil
 }
