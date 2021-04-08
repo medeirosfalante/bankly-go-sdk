@@ -94,6 +94,7 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	if err != nil {
 		return err, nil
 	}
+
 	url := bankly.devProd()
 
 	endpoint := fmt.Sprintf("%s/%s", url, action)
@@ -106,6 +107,8 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	if err != nil {
 		return err, nil
 	}
+
+	log.Printf("token %s\n", bankly.Token)
 	req.Header.Add("api-version", bankly.ApiVersion)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Set("Content-Type", writer.FormDataContentType())

@@ -10,6 +10,8 @@ import (
 	"github.com/medeirosfalante/bankly-go-sdk"
 )
 
+var TokenSend = ""
+
 func TestSendSelfDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
@@ -27,6 +29,30 @@ func TestSendSelfDocument(t *testing.T) {
 		Document:     "03602763501",
 		DocumentName: "image-example.jpg",
 	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+
+	TokenSend = response.Token
+
+}
+
+func TestCheckTokenDocument(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Account().GetAnalysis("03602763501", []string{TokenSend})
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
