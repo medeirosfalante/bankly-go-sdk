@@ -140,3 +140,17 @@ func (a *Account) RegisterClient(req *AccountClient) (*Error, error) {
 	}
 	return nil, nil
 }
+
+func (a *Account) GetClient(document string, resultLevel string) (*AccountClient, *Error, error) {
+	var response *AccountClient
+	params := url.Values{}
+	params.Add("resultLevel", resultLevel)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s?%s", document, params.Encode()), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
