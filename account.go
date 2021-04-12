@@ -1,8 +1,10 @@
 package bankly
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
+	"time"
 )
 
 // Account is a structure manager all about account
@@ -55,6 +57,33 @@ type AccountAnalysisDocumentDetails struct {
 	IssueDate                       string `json:"issueDate"`
 }
 
+type AccountClient struct {
+	Phone        *AccountClientPhone   `json:"phone"`
+	Address      *AccountClientAddress `json:"address"`
+	SocialName   string                `json:"socialName"`
+	RegisterName string                `json:"registerName"`
+	BirthDate    time.Time             `json:"birthDate"`
+	MotherName   string                `json:"motherName"`
+	Email        string                `json:"email"`
+	Document     string
+}
+
+type AccountClientPhone struct {
+	CountryCode string `json:"countryCode"`
+	Number      string `json:"number"`
+}
+
+type AccountClientAddress struct {
+	ZipCode        string `json:"zipCode"`
+	AddressLine    string `json:"addressLine"`
+	Complement     string `json:"complement"`
+	Neighborhood   string `json:"neighborhood"`
+	City           string `json:"city"`
+	State          string `json:"state"`
+	Country        string `json:"country"`
+	BuildingNumber string `json:"buildingNumber"`
+}
+
 type AccountAnalysisFaceMatch struct {
 	Status     string `json:"status"`
 	Similarity string `json:"similarity"`
@@ -98,4 +127,16 @@ func (a *Account) GetAnalysis(document string, tokens []string) (*AccountAnalysi
 		return nil, errApi, nil
 	}
 	return response, nil, nil
+}
+
+func (a *Account) RegisterClient(req *AccountClient) (*Error, error) {
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("PUT", fmt.Sprintf("customers/%s", req.Document), data, nil)
+	if err != nil {
+		return nil, err
+	}
+	if errApi != nil {
+		return errApi, nil
+	}
+	return nil, nil
 }

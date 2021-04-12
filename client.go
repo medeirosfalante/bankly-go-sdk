@@ -108,7 +108,6 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 		return err, nil
 	}
 
-	log.Printf("token %s\n", bankly.Token)
 	req.Header.Add("api-version", bankly.ApiVersion)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Set("Content-Type", writer.FormDataContentType())
@@ -159,6 +158,8 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+
+	log.Printf("bodyResponse %s\n\n", string(bodyResponse))
 
 	if res.StatusCode > 201 {
 		var errAPI Error
