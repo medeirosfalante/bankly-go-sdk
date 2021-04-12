@@ -96,6 +96,29 @@ type AccountAnalysisFaceDetails struct {
 type AccountAnalysisLiveness struct {
 }
 
+type RequestNewAccount struct {
+	AccountType    string `json:"accountType"`
+	DocumentNumber string `json:"-"`
+}
+
+type AcountPay struct {
+	Balance *Balance `json:"balance"`
+	Status  string   `json:"status"`
+	Branch  string   `json:"branch"`
+	Number  string   `json:"number"`
+}
+
+type Balance struct {
+	InProcess *BalanceItem `json:"inProcess"`
+	Available *BalanceItem `json:"available"`
+	Blocked   *BalanceItem `json:"blocked"`
+}
+
+type BalanceItem struct {
+	Amount   float64 `json:"amount"`
+	Currency string  `json:"currency"`
+}
+
 //Account - Instance de account
 func (c *Bankly) Account() *Account {
 	return &Account{client: c}
@@ -146,6 +169,31 @@ func (a *Account) GetClient(document string, resultLevel string) (*AccountClient
 	params := url.Values{}
 	params.Add("resultLevel", resultLevel)
 	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s?%s", document, params.Encode()), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) RegisterAccount(req *RequestNewAccount) (*AcountPay, *Error, error) {
+	var response *AcountPay
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("POST", fmt.Sprintf("customers/%s/accounts", req.DocumentNumber), data, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) GetAccounts(document string) ([]*AcountPay, *Error, error) {
+	var response []*AcountPay
+	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s/accounts", document), nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}

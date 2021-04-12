@@ -131,6 +131,51 @@ func TestDetailDocument(t *testing.T) {
 		return
 	}
 
-	t.Errorf("response is %#v", response)
+}
+
+func TestRegisterAccountDocument(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Account().RegisterAccount(&bankly.RequestNewAccount{
+		AccountType:    "PAYMENT_ACCOUNT",
+		DocumentNumber: "66896639652",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+
+}
+
+func TestGetAccountDocument(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Account().GetAccounts("66896639652")
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
 
 }
