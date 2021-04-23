@@ -158,6 +158,12 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	if bankly.Env == "develop" {
+		log.Printf("request body %s\n", string(body))
+		log.Printf("request url %s\n", endpoint)
+		log.Printf("response status %d\n", res.StatusCode)
+		log.Printf("response body %s\n", string(bodyResponse))
+	}
 	if res.StatusCode > 201 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
