@@ -15,6 +15,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/motemen/go-loghttp"
 )
 
 type Bankly struct {
@@ -45,23 +47,38 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
+var transport = &loghttp.Transport{
+	LogRequest: func(req *http.Request) {
+		log.Print("Request log: \n\n")
+		log.Printf("[%p] %s %s\n", req, req.Method, req.URL)
+		bodyResponse, _ := ioutil.ReadAll(req.Body)
+		log.Printf("body %s\n", string(bodyResponse))
+	},
+	LogResponse: func(resp *http.Response) {
+		log.Print("Response log: \n\n")
+		log.Printf("[%p] %d %s\n", resp.Request, resp.StatusCode, resp.Request.URL)
+		bodyResponse, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("body %s\n", string(bodyResponse))
+	},
+}
+
 func NewClient(ClientID, ClientSecret, env string) *Bankly {
-	return &Bankly{
-		client:       &http.Client{Timeout: 60 * time.Second},
+	bankly := &Bankly{
+		client:       &http.Client{Timeout: 60 * time.Second, Transport: transport},
 		ClientID:     ClientID,
 		ClientSecret: ClientSecret,
 		Env:          env,
 		ApiVersion:   "1.0",
 		Boundary:     "-----011000010111000001101001",
 	}
+	if env == "develop" {
+		bankly.client.Transport = transport
+	}
+	return bankly
 
 }
 
 func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, documentSide string, out interface{}) (error, *Error) {
-
-	if bankly.client == nil {
-		bankly.client = &http.Client{Timeout: 60 * time.Second}
-	}
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
@@ -117,6 +134,7 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -126,7 +144,6 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 		errAPI.Body = string(bodyResponse)
 		return nil, &errAPI
 	}
-	log.Printf("bodyResponse %s\n", bodyResponse)
 	err = json.Unmarshal(bodyResponse, out)
 	if err != nil {
 		return err, nil
@@ -135,9 +152,6 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 }
 
 func (bankly *Bankly) Request(method, action string, body []byte, out interface{}) (error, *Error) {
-	if bankly.client == nil {
-		bankly.client = &http.Client{Timeout: 60 * time.Second}
-	}
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
@@ -158,12 +172,6 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	if bankly.Env == "develop" {
-		log.Printf("request body %s\n", string(body))
-		log.Printf("request url %s\n", endpoint)
-		log.Printf("response status %d\n", res.StatusCode)
-		log.Printf("response body %s\n", string(bodyResponse))
-	}
 	if res.StatusCode > 201 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
