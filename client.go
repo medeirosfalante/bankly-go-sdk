@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
@@ -15,8 +14,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/motemen/go-loghttp"
 )
 
 type Bankly struct {
@@ -47,32 +44,14 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-var transport = &loghttp.Transport{
-	LogRequest: func(req *http.Request) {
-		log.Print("Request log: \n\n")
-		log.Printf("[%p] %s %s\n", req, req.Method, req.URL)
-		bodyResponse, _ := ioutil.ReadAll(req.Body)
-		log.Printf("body %s\n", string(bodyResponse))
-	},
-	LogResponse: func(resp *http.Response) {
-		log.Print("Response log: \n\n")
-		log.Printf("[%p] %d %s\n", resp.Request, resp.StatusCode, resp.Request.URL)
-		bodyResponse, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("body %s\n", string(bodyResponse))
-	},
-}
-
 func NewClient(ClientID, ClientSecret, env string) *Bankly {
 	bankly := &Bankly{
-		client:       &http.Client{Timeout: 60 * time.Second, Transport: transport},
+		client:       &http.Client{Timeout: 60 * time.Second},
 		ClientID:     ClientID,
 		ClientSecret: ClientSecret,
 		Env:          env,
 		ApiVersion:   "1.0",
-		Boundary:     "-----011000010111000001101001",
-	}
-	if env == "develop" {
-		bankly.client.Transport = transport
+		Boundary:     "---011000010111000001101001",
 	}
 	return bankly
 
@@ -82,6 +61,7 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
+	writer.SetBoundary(bankly.Boundary)
 	_ = writer.WriteField("documentType", documentType)
 	_ = writer.WriteField("documentSide", documentSide)
 
@@ -95,6 +75,12 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	if err != nil {
 		return err, nil
 	}
+
+	buff, err := ioutil.ReadFile(filepathRef)
+	if err != nil {
+		return err, nil
+	}
+
 	mh := make(textproto.MIMEHeader)
 	mh.Set("Content-Type", contentType)
 	mh.Set("Content-Disposition", fmt.Sprintf("form-data; name=\"image\"; filename=\"%s\"", file.Name()))
@@ -102,10 +88,8 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	if err != nil {
 		return err, nil
 	}
-	_, err = io.Copy(part3, file)
-	if err != nil {
-		return err, nil
-	}
+
+	part3.Write(buff)
 
 	err = writer.Close()
 	if err != nil {
@@ -134,7 +118,6 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -204,9 +187,6 @@ func (Bankly *Bankly) TokenUri() string {
 
 func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	var tokenResponse TokenResponse
-	if bankly.client == nil {
-		bankly.client = &http.Client{Timeout: 60 * time.Second}
-	}
 	params := url.Values{}
 	params.Add("client_secret", bankly.ClientSecret)
 	params.Add("grant_type", "client_credentials")
@@ -233,6 +213,7 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("tokenResponse.AccessToken %s\n", tokenResponse.AccessToken)
 	bankly.Token = tokenResponse.AccessToken
 	return &tokenResponse, nil
 }
