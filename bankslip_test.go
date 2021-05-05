@@ -20,7 +20,6 @@ func TestCreateBankslip(t *testing.T) {
 		Amount:         30,
 		DueDate:        time.Now().AddDate(0, 0, 1),
 	})
-	t.Errorf("err : %s", err)
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return

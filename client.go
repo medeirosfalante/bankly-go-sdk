@@ -14,6 +14,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 type Bankly struct {
@@ -147,14 +149,19 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 
+	uuid := uuid.NewV4()
+
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
+	req.Header.Add("x-correlation-id", uuid.String())
 	res, err := bankly.client.Do(req)
 	if err != nil {
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	log.Printf("bodyResponse:\n\n %s\n\n", string(bodyResponse))
+	log.Printf("StatusCode:\n\n %d\n\n", res.StatusCode)
 	if res.StatusCode > 201 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -213,7 +220,6 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("tokenResponse.AccessToken %s\n", tokenResponse.AccessToken)
 	bankly.Token = tokenResponse.AccessToken
 	return &tokenResponse, nil
 }
