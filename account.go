@@ -119,6 +119,27 @@ type BalanceItem struct {
 	Currency string  `json:"currency"`
 }
 
+type StatementRequest struct {
+	Branch  string `json:"branch"`
+	Account string `json:"account"`
+	Offset  string `json:"offset"`
+	Limit   string `json:"limit"`
+	Details string `json:"details"`
+}
+
+type StatementResponse struct {
+	TotalItens int32            `json:"totalItens"`
+	Itens      []*StatementItem `json:"itens"`
+	PageIndex  int32            `json:"pageIndex"`
+}
+
+type StatementItem struct {
+	Type         string  `json:"type"`
+	Amount       float32 `json:"amount"`
+	Operation    string  `json:"operation"`
+	CreationDate string  `json:"creationDate"`
+}
+
 //Account - Instance de account
 func (c *Bankly) Account() *Account {
 	return &Account{client: c}
@@ -194,6 +215,24 @@ func (a *Account) RegisterAccount(req *RequestNewAccount) (*AcountPay, *Error, e
 func (a *Account) GetAccounts(document string) ([]*AcountPay, *Error, error) {
 	var response []*AcountPay
 	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s/accounts", document), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Error, error) {
+	params := url.Values{}
+	params.Add("account", req.Account)
+	params.Add("branch", req.Branch)
+	params.Add("limit", req.Limit)
+	params.Add("offset", req.Offset)
+	params.Add("details", req.Details)
+	var response *StatementResponse
+	err, errApi := a.client.Request("GET", fmt.Sprintf("account/statement?%s", params.Encode()), nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
