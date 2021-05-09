@@ -2,6 +2,7 @@ package bankly
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -18,6 +19,12 @@ type BankslipRequest struct {
 	DueDate        time.Time        `json:"dueDate"`
 }
 
+type BankslipGetRequest struct {
+	Number             string `json:"number"`
+	Branch             string `json:"branch"`
+	AuthenticationCode string `json:"authenticationCode"`
+}
+
 type BankslipAccount struct {
 	Number string `json:"number"`
 	Branch string `json:"branch"`
@@ -28,7 +35,7 @@ type BankslipResponse struct {
 	Account            *BankslipAccount `json:"account"`
 	UpdatedAt          time.Time        `json:"updatedAt"`
 	OurNumber          string           `son:"ourNumber"`
-	Aigitable          string           `json:"digitable"`
+	Digitable          string           `json:"digitable"`
 	Status             string           `json:"status"`
 	Amount             BankslipAmount   `json:"amount"`
 	DueDate            time.Time        `json:"dueDate"`
@@ -59,10 +66,9 @@ func (a *Bankslip) Create(req *BankslipRequest) (*BankslipResponse, *Error, erro
 	return response, nil, nil
 }
 
-func (a *Bankslip) Get(req *BankslipRequest) (*BankslipResponse, *Error, error) {
+func (a *Bankslip) Get(req *BankslipGetRequest) (*BankslipResponse, *Error, error) {
 	var response *BankslipResponse
-	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("POST", "bankslip", data, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("bankslip/branch/%s/number/%s/%s", req.Branch, req.Number, req.AuthenticationCode), nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
