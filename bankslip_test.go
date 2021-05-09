@@ -36,3 +36,29 @@ func TestCreateBankslip(t *testing.T) {
 	}
 
 }
+
+func TestGetBankslip(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Bankslip().Get(&bankly.BankslipGetRequest{
+		Branch:             "0001",
+		Number:             "189863",
+		AuthenticationCode: "2bed1d37-3ea8-4b06-9dc8-199883eb4609",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+
+}
