@@ -26,6 +26,19 @@ type BankslipAccount struct {
 type BankslipResponse struct {
 	AuthenticationCode string           `json:"authenticationCode"`
 	Account            *BankslipAccount `json:"account"`
+	UpdatedAt          time.Time        `json:"updatedAt"`
+	OurNumber          string           `son:"ourNumber"`
+	Aigitable          string           `json:"digitable"`
+	Status             string           `json:"status"`
+	Amount             BankslipAmount   `json:"amount"`
+	DueDate            time.Time        `json:"dueDate"`
+}
+
+type BankslipAmount struct {
+	Value float64 `json:"value"`
+}
+
+type BankslipRequestGet struct {
 }
 
 //Bankslip - Instance de bankslip
@@ -34,6 +47,19 @@ func (c *Bankly) Bankslip() *Bankslip {
 }
 
 func (a *Bankslip) Create(req *BankslipRequest) (*BankslipResponse, *Error, error) {
+	var response *BankslipResponse
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("POST", "bankslip", data, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Bankslip) Get(req *BankslipRequest) (*BankslipResponse, *Error, error) {
 	var response *BankslipResponse
 	data, _ := json.Marshal(req)
 	err, errApi := a.client.Request("POST", "bankslip", data, &response)
