@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -160,9 +159,7 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	log.Printf("bodyResponse:\n\n %s\n\n", string(bodyResponse))
-	log.Printf("StatusCode:\n\n %d\n\n", res.StatusCode)
-	if res.StatusCode > 201 {
+	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
 		if err != nil {
