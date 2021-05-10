@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -223,6 +224,22 @@ func (a *Account) GetAccounts(document string) ([]*AcountPay, *Error, error) {
 	}
 	return response, nil, nil
 }
+
+func (a *Account) GetAccount(account string, includeBalance bool) (*AcountPay, *Error, error) {
+	var response *AcountPay
+	params := url.Values{}
+	params.Add("includeBalance", strconv.FormatBool(includeBalance))
+	err, errApi := a.client.Request("GET", fmt.Sprintf("accounts/%s?%s", account, params.Encode()), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+// https://api.sandbox.bankly.com.br/accounts/accountNumber
 
 func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Error, error) {
 	params := url.Values{}
