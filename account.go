@@ -69,6 +69,29 @@ type AccountClient struct {
 	Document     string
 }
 
+type AccountBussiness struct {
+	Phone         *AccountClientPhone   `json:"phone"`
+	Address       *AccountClientAddress `json:"businessAddress"`
+	BirthDate     time.Time             `json:"birthDate"`
+	MotherName    string                `json:"motherName"`
+	BusinessEmail string                `json:"businessEmail"`
+	BusinessName  string                `json:"businessName"`
+	TradingName   string                `json:"tradingName"`
+	BusinessType  string                `json:"businessType"`
+	BusinessSize  string                `json:"businessSize"`
+	Document      string
+}
+
+type AccountLegalRepresentative struct {
+	Phone        *AccountClientPhone   `json:"phone"`
+	Address      *AccountClientAddress `json:"address"`
+	SocialName   string                `json:"socialName"`
+	RegisterName string                `json:"registerName"`
+	BirthDate    time.Time             `json:"birthDate"`
+	MotherName   string                `json:"motherName"`
+	Email        string                `json:"email"`
+}
+
 type AccountClientPhone struct {
 	CountryCode string `json:"countryCode"`
 	Number      string `json:"number"`
@@ -250,6 +273,59 @@ func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Erro
 	params.Add("details", req.Details)
 	var response *StatementResponse
 	err, errApi := a.client.Request("GET", fmt.Sprintf("account/statement?%s", params.Encode()), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) RegisterBusiness(req *AccountBussiness) (*Error, error) {
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("PUT", fmt.Sprintf("business/%s", req.Document), data, nil)
+	if err != nil {
+		return nil, err
+	}
+	if errApi != nil {
+		return errApi, nil
+	}
+	return nil, nil
+}
+
+func (a *Account) GetBusiness(document string, resultLevel string) (*AccountBussiness, *Error, error) {
+	var response *AccountBussiness
+	params := url.Values{}
+	params.Add("resultLevel", resultLevel)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("business/%s?%s", document, params.Encode()), nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) RegisterAccountBusiness(req *RequestNewAccount) (*AcountPay, *Error, error) {
+	var response *AcountPay
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("POST", fmt.Sprintf("business/%s/accounts", req.DocumentNumber), data, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Account) GetAccountBusiness(account string, includeBalance bool) (*AcountPay, *Error, error) {
+	var response *AcountPay
+	params := url.Values{}
+	params.Add("includeBalance", strconv.FormatBool(includeBalance))
+	err, errApi := a.client.Request("GET", fmt.Sprintf("business/accounts/%s?%s", account, params.Encode()), nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
