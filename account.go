@@ -70,16 +70,16 @@ type AccountClient struct {
 }
 
 type AccountBussiness struct {
-	Phone         *AccountClientPhone   `json:"phone"`
-	Address       *AccountClientAddress `json:"businessAddress"`
-	BirthDate     time.Time             `json:"birthDate"`
-	MotherName    string                `json:"motherName"`
-	BusinessEmail string                `json:"businessEmail"`
-	BusinessName  string                `json:"businessName"`
-	TradingName   string                `json:"tradingName"`
-	BusinessType  string                `json:"businessType"`
-	BusinessSize  string                `json:"businessSize"`
-	Document      string
+	Phone               *AccountClientPhone         `json:"phone"`
+	BusinessAddress     *AccountClientAddress       `json:"businessAddress"`
+	MotherName          string                      `json:"motherName"`
+	BusinessEmail       string                      `json:"businessEmail"`
+	BusinessName        string                      `json:"businessName"`
+	TradingName         string                      `json:"tradingName"`
+	BusinessType        string                      `json:"businessType"`
+	BusinessSize        string                      `json:"businessSize"`
+	LegalRepresentative *AccountLegalRepresentative `json:"legalRepresentative"`
+	Document            string
 }
 
 type AccountLegalRepresentative struct {
