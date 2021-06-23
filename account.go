@@ -83,13 +83,14 @@ type AccountBussiness struct {
 }
 
 type AccountLegalRepresentative struct {
-	Phone        *AccountClientPhone   `json:"phone"`
-	Address      *AccountClientAddress `json:"address"`
-	SocialName   string                `json:"socialName"`
-	RegisterName string                `json:"registerName"`
-	BirthDate    time.Time             `json:"birthDate"`
-	MotherName   string                `json:"motherName"`
-	Email        string                `json:"email"`
+	Phone          *AccountClientPhone   `json:"phone"`
+	Address        *AccountClientAddress `json:"address"`
+	SocialName     string                `json:"socialName"`
+	RegisterName   string                `json:"registerName"`
+	BirthDate      time.Time             `json:"birthDate"`
+	MotherName     string                `json:"motherName"`
+	Email          string                `json:"email"`
+	DocumentNumber string                `json:"DocumentNumber"`
 }
 
 type AccountClientPhone struct {
