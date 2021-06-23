@@ -83,13 +83,14 @@ type AccountBussiness struct {
 }
 
 type AccountLegalRepresentative struct {
-	Phone        *AccountClientPhone   `json:"phone"`
-	Address      *AccountClientAddress `json:"address"`
-	SocialName   string                `json:"socialName"`
-	RegisterName string                `json:"registerName"`
-	BirthDate    time.Time             `json:"birthDate"`
-	MotherName   string                `json:"motherName"`
-	Email        string                `json:"email"`
+	Phone          *AccountClientPhone   `json:"phone"`
+	Address        *AccountClientAddress `json:"address"`
+	SocialName     string                `json:"socialName"`
+	RegisterName   string                `json:"registerName"`
+	BirthDate      time.Time             `json:"birthDate"`
+	MotherName     string                `json:"motherName"`
+	Email          string                `json:"email"`
+	DocumentNumber string                `json:"DocumentNumber"`
 }
 
 type AccountClientPhone struct {
@@ -262,8 +263,6 @@ func (a *Account) GetAccount(account string, includeBalance bool) (*AcountPay, *
 	return response, nil, nil
 }
 
-// https://api.sandbox.bankly.com.br/accounts/accountNumber
-
 func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Error, error) {
 	params := url.Values{}
 	params.Add("account", req.Account)
@@ -321,8 +320,8 @@ func (a *Account) RegisterAccountBusiness(req *RequestNewAccount) (*AcountPay, *
 	return response, nil, nil
 }
 
-func (a *Account) GetAccountBusiness(account string, includeBalance bool) (*AcountPay, *Error, error) {
-	var response *AcountPay
+func (a *Account) GetAccountBusiness(account string, includeBalance bool) ([]*AcountPay, *Error, error) {
+	var response []*AcountPay
 	params := url.Values{}
 	params.Add("includeBalance", strconv.FormatBool(includeBalance))
 	err, errApi := a.client.Request("GET", fmt.Sprintf("business/accounts/%s?%s", account, params.Encode()), nil, &response)
