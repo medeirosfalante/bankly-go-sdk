@@ -48,19 +48,48 @@ type TransferRecipient struct {
 type TransferBank struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
+	Ispb string `json:"ispb"`
+}
+
+type TransferGetSender struct {
+	Branch   string `json:"branch"`
+	Account  string `json:"account"`
+	Document string `json:"document"`
+	Name     string `json:"name"`
+}
+
+type TransferGetRecipient struct {
+	Branch      string `json:"branch"`
+	Account     string `json:"account"`
+	BankCode    string `json:"bankCode"`
+	Document    string `json:"document"`
+	Name        string `json:"name"`
+	AccountType string `json:"accountType"`
+}
+
+type TransferAccount struct {
+	Bank    *TransferBank        `json:"bank"`
+	Branch  string               `json:"branch"`
+	Account *TransferItemAccount `json:"account"`
+}
+
+type TransferItemAccount struct {
+	Bank    *TransferBank `json:"bank"`
+	Branch  string        `json:"branch"`
+	Account string        `json:"account"`
 }
 
 type TransferResponse struct {
-	AuthenticationCode string             `json:"authenticationCode"`
-	Channel            string             `json:"channel"`
-	Status             string             `json:"status"`
-	CreatedAt          time.Time          `json:"createdAt"`
-	UpdatedAt          time.Time          `json:"updatedAt"`
-	Sender             *TransferSender    `json:"sender"`
-	Recipient          *TransferRecipient `json:"recipient"`
-	Description        string             `json:"description"`
-	Amount             int32              `json:"amount"`
-	CorrelationID      string             `json:"-"`
+	AuthenticationCode string           `json:"authenticationCode"`
+	Channel            string           `json:"channel"`
+	Status             string           `json:"status"`
+	CreatedAt          time.Time        `json:"createdAt"`
+	UpdatedAt          time.Time        `json:"updatedAt"`
+	Sender             *TransferAccount `json:"sender"`
+	Recipient          *TransferAccount `json:"recipient"`
+	Description        string           `json:"description"`
+	Amount             float32          `json:"amount"`
+	CorrelationID      string           `json:"-"`
 }
 
 //Transfer - Instance de bankslip
