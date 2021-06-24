@@ -48,3 +48,29 @@ func TestCreateTransfer(t *testing.T) {
 	}
 
 }
+
+func TestGetTransfer(t *testing.T) {
+	godotenv.Load(".env.test")
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Transfer().Get(&bankly.TransferGet{
+		Branch:             "0001",
+		Account:            "199265",
+		CorrelationID:      "167a0eb3-3cb2-4767-b7f4-be6ea7d4edf4",
+		AuthenticationCode: "8bb6a7a8-5482-4e6e-9cc9-7f544e98f69e",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+
+}
