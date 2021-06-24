@@ -2,6 +2,8 @@ package bankly
 
 import (
 	"encoding/json"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Transfer is a structure manager all about bankslip
@@ -42,9 +44,10 @@ func (c *Bankly) Transfer() *Transfer {
 }
 
 func (a *Transfer) Create(req *TransferRequest) (*TransferResponse, *Error, error) {
+	uuid := uuid.NewV4()
 	var response *TransferResponse
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("POST", "fund-transfers", data, &response)
+	err, errApi := a.client.Request("POST", "fund-transfers", uuid.String(), data, &response)
 	if err != nil {
 		return nil, nil, err
 	}

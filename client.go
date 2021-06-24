@@ -13,8 +13,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 type Bankly struct {
@@ -135,7 +133,7 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	return nil, nil
 }
 
-func (bankly *Bankly) Request(method, action string, body []byte, out interface{}) (error, *Error) {
+func (bankly *Bankly) Request(method, action, correlationID string, body []byte, out interface{}) (error, *Error) {
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
@@ -148,12 +146,10 @@ func (bankly *Bankly) Request(method, action string, body []byte, out interface{
 		return err, nil
 	}
 
-	uuid := uuid.NewV4()
-
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
-	req.Header.Add("x-correlation-id", uuid.String())
+	req.Header.Add("x-correlation-id", correlationID)
 	res, err := bankly.client.Do(req)
 	if err != nil {
 		return err, nil

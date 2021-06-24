@@ -188,7 +188,7 @@ func (a *Account) GetAnalysis(document string, tokens []string) (*AccountAnalysi
 	for _, item := range tokens {
 		params.Add("token", item)
 	}
-	err, errApi := a.client.Request("GET", fmt.Sprintf("document-analysis/%s?%s", document, params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("document-analysis/%s?%s", document, params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -200,7 +200,7 @@ func (a *Account) GetAnalysis(document string, tokens []string) (*AccountAnalysi
 
 func (a *Account) RegisterClient(req *AccountClient) (*Error, error) {
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("PUT", fmt.Sprintf("customers/%s", req.Document), data, nil)
+	err, errApi := a.client.Request("PUT", fmt.Sprintf("customers/%s", req.Document), "", data, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (a *Account) GetClient(document string, resultLevel string) (*AccountClient
 	var response *AccountClient
 	params := url.Values{}
 	params.Add("resultLevel", resultLevel)
-	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s?%s", document, params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s?%s", document, params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -227,7 +227,7 @@ func (a *Account) GetClient(document string, resultLevel string) (*AccountClient
 func (a *Account) RegisterAccount(req *RequestNewAccount) (*AcountPay, *Error, error) {
 	var response *AcountPay
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("POST", fmt.Sprintf("customers/%s/accounts", req.DocumentNumber), data, &response)
+	err, errApi := a.client.Request("POST", fmt.Sprintf("customers/%s/accounts", req.DocumentNumber), "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -239,7 +239,7 @@ func (a *Account) RegisterAccount(req *RequestNewAccount) (*AcountPay, *Error, e
 
 func (a *Account) GetAccounts(document string) ([]*AcountPay, *Error, error) {
 	var response []*AcountPay
-	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s/accounts", document), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("customers/%s/accounts", document), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -253,7 +253,7 @@ func (a *Account) GetAccount(account string, includeBalance bool) (*AcountPay, *
 	var response *AcountPay
 	params := url.Values{}
 	params.Add("includeBalance", strconv.FormatBool(includeBalance))
-	err, errApi := a.client.Request("GET", fmt.Sprintf("accounts/%s?%s", account, params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("accounts/%s?%s", account, params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -271,7 +271,7 @@ func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Erro
 	params.Add("offset", req.Offset)
 	params.Add("details", req.Details)
 	var response *StatementResponse
-	err, errApi := a.client.Request("GET", fmt.Sprintf("account/statement?%s", params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("account/statement?%s", params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -283,7 +283,7 @@ func (a *Account) GetStatement(req *StatementRequest) (*StatementResponse, *Erro
 
 func (a *Account) RegisterBusiness(req *AccountBussiness) (*Error, error) {
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("PUT", fmt.Sprintf("business/%s", req.Document), data, nil)
+	err, errApi := a.client.Request("PUT", fmt.Sprintf("business/%s", req.Document), "", data, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func (a *Account) GetBusiness(document string, resultLevel string) (*AccountBuss
 	var response *AccountBussiness
 	params := url.Values{}
 	params.Add("resultLevel", resultLevel)
-	err, errApi := a.client.Request("GET", fmt.Sprintf("business/%s?%s", document, params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("business/%s?%s", document, params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -310,7 +310,7 @@ func (a *Account) GetBusiness(document string, resultLevel string) (*AccountBuss
 func (a *Account) RegisterAccountBusiness(req *RequestNewAccount) (*AcountPay, *Error, error) {
 	var response *AcountPay
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("POST", fmt.Sprintf("business/%s/accounts", req.DocumentNumber), data, &response)
+	err, errApi := a.client.Request("POST", fmt.Sprintf("business/%s/accounts", req.DocumentNumber), "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -324,7 +324,7 @@ func (a *Account) GetAccountBusiness(account string, includeBalance bool) ([]*Ac
 	var response []*AcountPay
 	params := url.Values{}
 	params.Add("includeBalance", strconv.FormatBool(includeBalance))
-	err, errApi := a.client.Request("GET", fmt.Sprintf("business/accounts/%s?%s", account, params.Encode()), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("business/accounts/%s?%s", account, params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}

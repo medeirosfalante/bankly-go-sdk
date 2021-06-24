@@ -56,7 +56,7 @@ func (c *Bankly) Bankslip() *Bankslip {
 func (a *Bankslip) Create(req *BankslipRequest) (*BankslipResponse, *Error, error) {
 	var response *BankslipResponse
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.Request("POST", "bankslip", data, &response)
+	err, errApi := a.client.Request("POST", "bankslip", "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -68,7 +68,7 @@ func (a *Bankslip) Create(req *BankslipRequest) (*BankslipResponse, *Error, erro
 
 func (a *Bankslip) Get(req *BankslipGetRequest) (*BankslipResponse, *Error, error) {
 	var response *BankslipResponse
-	err, errApi := a.client.Request("GET", fmt.Sprintf("bankslip/branch/%s/number/%s/%s", req.Branch, req.Number, req.AuthenticationCode), nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("bankslip/branch/%s/number/%s/%s", req.Branch, req.Number, req.AuthenticationCode), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
