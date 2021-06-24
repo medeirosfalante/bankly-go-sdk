@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -146,8 +145,6 @@ func (bankly *Bankly) Request(method, action, correlationID string, body []byte,
 	if err != nil {
 		return err, nil
 	}
-	log.Printf("endpoint \n%s\n", endpoint)
-	log.Printf("correlationID \n%s\n", correlationID)
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
@@ -159,10 +156,6 @@ func (bankly *Bankly) Request(method, action, correlationID string, body []byte,
 		return err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	log.Printf(" bankly.Token \n%s\n", bankly.Token)
-	log.Printf("bodyResponse \n%s\n", bodyResponse)
-
-	log.Printf("res.StatusCode \n%d\n", res.StatusCode)
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
