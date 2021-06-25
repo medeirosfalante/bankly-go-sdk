@@ -320,11 +320,9 @@ func (a *Account) RegisterAccountBusiness(req *RequestNewAccount) (*AcountPay, *
 	return response, nil, nil
 }
 
-func (a *Account) GetAccountBusiness(account string, includeBalance bool) ([]*AcountPay, *Error, error) {
+func (a *Account) GetAccountBusiness(document string) ([]*AcountPay, *Error, error) {
 	var response []*AcountPay
-	params := url.Values{}
-	params.Add("includeBalance", strconv.FormatBool(includeBalance))
-	err, errApi := a.client.Request("GET", fmt.Sprintf("business/accounts/%s?%s", account, params.Encode()), "", nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("business/%s/accounts", document), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
