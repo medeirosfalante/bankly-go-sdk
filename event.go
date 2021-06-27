@@ -31,7 +31,7 @@ type EventItemResponse struct {
 	Category       string       `json:"category"`
 	DocumentNumber string       `json:"documentNumber"`
 	BankBranch     string       `json:"bankBranch"`
-	NankAccount    string       `json:"bankAccount"`
+	BankAccount    string       `json:"bankAccount"`
 	Amount         float32      `json:"amount"`
 	Name           string       `json:"name"`
 	Timestamp      *time.Time   `json:"timestamp"`
