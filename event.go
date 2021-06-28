@@ -75,10 +75,10 @@ func (a *Event) Get(req *EventGetRequest) (*EventResponse, *Error, error) {
 	params.Add("pageSize", req.PageSize)
 	params.Add("includeDetails", strconv.FormatBool(req.IncludeDetails))
 	if req.BeginDateTime != nil {
-		params.Add("BeginDateTime", req.BeginDateTime.String())
+		params.Add("BeginDateTime", req.BeginDateTime.Format(time.RFC3339))
 	}
 	if req.EndDateTime != nil {
-		params.Add("EndDateTime", req.EndDateTime.String())
+		params.Add("EndDateTime", req.EndDateTime.Format(time.RFC3339))
 	}
 
 	err, errApi := a.client.Request("GET", fmt.Sprintf("events?%s", params.Encode()), req.CorrelationID, nil, &response)
