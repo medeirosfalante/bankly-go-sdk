@@ -26,16 +26,16 @@ type EventGetRequest struct {
 type EventResponse []*EventItemResponse
 
 type EventItemResponse struct {
-	AggregateId    string      `json:"aggregateId"`
-	Type           string      `json:"type"`
-	Category       string      `json:"category"`
-	DocumentNumber string      `json:"documentNumber"`
-	BankBranch     string      `json:"bankBranch"`
-	BankAccount    string      `json:"bankAccount"`
-	Amount         float32     `json:"amount"`
-	Name           string      `json:"name"`
-	Timestamp      *time.Time  `json:"timestamp"`
-	Data           interface{} `json:"data"`
+	AggregateId    string                 `json:"aggregateId"`
+	Type           string                 `json:"type"`
+	Category       string                 `json:"category"`
+	DocumentNumber string                 `json:"documentNumber"`
+	BankBranch     string                 `json:"bankBranch"`
+	BankAccount    string                 `json:"bankAccount"`
+	Amount         float32                `json:"amount"`
+	Name           string                 `json:"name"`
+	Timestamp      *time.Time             `json:"timestamp"`
+	Data           map[string]interface{} `json:"data"`
 }
 
 type EventAccount struct {
