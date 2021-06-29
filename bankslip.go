@@ -77,3 +77,15 @@ func (a *Bankslip) Get(req *BankslipGetRequest) (*BankslipResponse, *Error, erro
 	}
 	return response, nil, nil
 }
+
+func (a *Bankslip) GetPdf(authenticationCode string) ([]byte, *Error, error) {
+	var response []byte
+	response, err, errApi := a.client.RequestGetFile(fmt.Sprintf("bankslip/%s/pdf", authenticationCode))
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
