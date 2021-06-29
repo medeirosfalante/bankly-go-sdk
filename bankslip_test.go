@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -56,6 +57,33 @@ func TestGetBankslip(t *testing.T) {
 		return
 	}
 
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+
+}
+
+func TestGetFile(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Bankslip().GetPdf("2bed1d37-3ea8-4b06-9dc8-199883eb4609")
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	err = ioutil.WriteFile("test.pdf", response, 0644)
+	if err != nil {
+		t.Errorf("err : %#v", err)
+		return
+	}
 	if response == nil {
 		t.Error("response is null")
 		return

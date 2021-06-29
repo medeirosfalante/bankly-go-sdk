@@ -133,6 +133,38 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	return nil, nil
 }
 
+func (bankly *Bankly) RequestGetFile(action string) ([]byte, error, *Error) {
+	url := bankly.devProd()
+	endpoint := fmt.Sprintf("%s/%s", url, action)
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return nil, err, nil
+	}
+
+	_, err = bankly.RequestToken()
+	if err != nil {
+		return nil, err, nil
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
+	req.Header.Add("api-version", bankly.ApiVersion)
+	res, err := bankly.client.Do(req)
+	if err != nil {
+		return nil, err, nil
+	}
+	bodyResponse, err := ioutil.ReadAll(res.Body)
+	if res.StatusCode > 202 {
+		var errAPI Error
+		err = json.Unmarshal(bodyResponse, &errAPI)
+		if err != nil {
+			return nil, err, nil
+		}
+		errAPI.Body = string(bodyResponse)
+		return nil, nil, &errAPI
+	}
+	return bodyResponse, nil, nil
+}
+
 func (bankly *Bankly) Request(method, action, correlationID string, body []byte, out interface{}) (error, *Error) {
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
