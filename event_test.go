@@ -38,8 +38,6 @@ func TestGetEvent(t *testing.T) {
 		return
 	}
 
-	t.Errorf("response %#v", response)
-
 	if errApi != nil {
 		t.Errorf("errApi : %#v", errApi)
 		return
