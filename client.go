@@ -140,29 +140,10 @@ func (bankly *Bankly) RequestGetFile(action string) ([]byte, error, *Error) {
 	if err != nil {
 		return nil, err, nil
 	}
-
-	_, err = bankly.RequestToken()
-	if err != nil {
-		return nil, err, nil
-	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
-	res, err := bankly.client.Do(req)
-	if err != nil {
-		return nil, err, nil
-	}
-	bodyResponse, err := ioutil.ReadAll(res.Body)
-	if res.StatusCode > 202 {
-		var errAPI Error
-		err = json.Unmarshal(bodyResponse, &errAPI)
-		if err != nil {
-			return nil, err, nil
-		}
-		errAPI.Body = string(bodyResponse)
-		return nil, nil, &errAPI
-	}
-	return bodyResponse, nil, nil
+	return bankly.RequestMaster(req, nil)
 }
 
 func (bankly *Bankly) Request(method, action, correlationID string, body []byte, out interface{}) (error, *Error) {
@@ -183,25 +164,55 @@ func (bankly *Bankly) Request(method, action, correlationID string, body []byte,
 	if correlationID != "" {
 		req.Header.Add("x-correlation-id", correlationID)
 	}
-	res, err := bankly.client.Do(req)
+	_, err, errBody := bankly.RequestMaster(req, &out)
+	return err, errBody
+}
+
+func (bankly *Bankly) RequestPix(method, action, xBklyPixUserId string, body []byte, out interface{}) (error, *Error) {
+	url := bankly.devProd()
+	endpoint := fmt.Sprintf("%s/%s", url, action)
+	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err, nil
+	}
+	if xBklyPixUserId != "" {
+		req.Header.Add("x-bkly-pix-user-id", xBklyPixUserId)
+	}
+	_, err, errBody := bankly.RequestMaster(req, &out)
+	return err, errBody
+}
+
+func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte, error, *Error) {
+	_, err := bankly.RequestToken()
+	if err != nil {
+		return nil, err, nil
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
+	req.Header.Add("api-version", bankly.ApiVersion)
+	res, err := bankly.client.Do(req)
+	if err != nil {
+		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
 		if err != nil {
-			return err, nil
+			return bodyResponse, err, nil
 		}
 		errAPI.Body = string(bodyResponse)
-		return nil, &errAPI
+		return bodyResponse, nil, &errAPI
 	}
-	err = json.Unmarshal(bodyResponse, out)
-	if err != nil {
-		return err, nil
+	if out != nil {
+		err = json.Unmarshal(bodyResponse, out)
+		if err != nil {
+			return bodyResponse, err, nil
+		}
 	}
-	return nil, nil
+
+	return bodyResponse, nil, nil
 }
 
 func (Bankly *Bankly) devProd() string {
