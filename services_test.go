@@ -25,6 +25,7 @@ func TestListBanks(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
+	t.Errorf("response : %#v", response)
 	if response == nil {
 		t.Error("response is null")
 		return

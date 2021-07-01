@@ -132,3 +132,26 @@ func TestCashOut(t *testing.T) {
 		return
 	}
 }
+
+func TestGetPix(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Pix().Get(&bankly.PixCashOutGet{
+		Account:            "199265",
+		AuthenticationCode: "dbe0fc22-7c42-4c2a-afa4-a603cdab864e",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+	t.Errorf("response : %#v", response)
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+}

@@ -82,6 +82,11 @@ type PixCashOutPeople struct {
 	Bank           *Bank                `json:"bank"`
 }
 
+type PixCashOutGet struct {
+	Account            string `json:"account"`
+	AuthenticationCode string `json:"-"`
+}
+
 //Pix - Instance de Pix
 func (c *Bankly) Pix() *Pix {
 	return &Pix{client: c}
@@ -129,6 +134,18 @@ func (a *Pix) CreateKey(req *PixCreateKeyRequest) (*PixKeyResponse, *Error, erro
 func (a *Pix) GetKey(addressingKeyValue string, ownerDocument string) (*PixKeyResponse, *Error, error) {
 	var response *PixKeyResponse
 	err, errApi := a.client.RequestPix("GET", fmt.Sprintf("baas/pix/entries/%s", addressingKeyValue), ownerDocument, nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Pix) Get(req *PixCashOutGet) (*TransferResponse, *Error, error) {
+	var response *TransferResponse
+	err, errApi := a.client.Request("GET", fmt.Sprintf("baas/pix/cash-out/accounts/%s/authenticationcode/%s", req.Account, req.AuthenticationCode), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
