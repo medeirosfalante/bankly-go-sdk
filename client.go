@@ -153,11 +153,6 @@ func (bankly *Bankly) Request(method, action, correlationID string, body []byte,
 	if err != nil {
 		return err, nil
 	}
-
-	_, err = bankly.RequestToken()
-	if err != nil {
-		return err, nil
-	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
