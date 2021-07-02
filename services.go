@@ -27,8 +27,8 @@ type ListBanksItem struct {
 	ShortName string `json:"shortName"`
 }
 
-func (a *Services) ListBanks(req ListBanksRequest) (*ListBanksResponse, *Error, error) {
-	var response *ListBanksResponse
+func (a *Services) ListBanks(req *ListBanksRequest) (ListBanksResponse, *Error, error) {
+	var response ListBanksResponse
 
 	params := url.Values{}
 	params.Add("product", req.Product)
