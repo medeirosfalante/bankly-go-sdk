@@ -3,7 +3,6 @@ package bankly
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -87,6 +86,30 @@ type PixCashOutGet struct {
 	AuthenticationCode string `json:"-"`
 }
 
+type BrcodeRequest struct {
+	AddressingKey  *PixKey   `json:"addressingKey"`
+	Amount         float64   `json:"amount"`
+	ConciliationId string    `json:"conciliationId,omitempty"`
+	CategoryCode   string    `json:"categoryCode,omitempty"`
+	AdditionalData string    `json:"additionalData,omitempty"`
+	Location       *Location `json:"location"`
+	RecipientName  string    `json:"recipientName"`
+}
+
+type Location struct {
+	City    string `json:"city"`
+	ZipCode string `json:"zipCode"`
+}
+
+type BrcodeResponse struct {
+	EncodedValue string `json:"encodedValue"`
+}
+
+type GetBercodeResponse struct {
+	EncodedValue  string `json:"encodedValue"`
+	OwnerDocument string
+}
+
 //Pix - Instance de Pix
 func (c *Bankly) Pix() *Pix {
 	return &Pix{client: c}
@@ -95,7 +118,6 @@ func (c *Bankly) Pix() *Pix {
 func (a *Pix) CreateCashOut(req *PixKeyCashOutRequest) (*PixKeyCashOutResponse, *Error, error) {
 	var response *PixKeyCashOutResponse
 	data, _ := json.Marshal(req)
-	log.Printf(" \n%s\n", data)
 	err, errApi := a.client.RequestPix("POST", "baas/pix/cash-out", "", data, &response)
 	if err != nil {
 		return nil, nil, err
@@ -146,6 +168,32 @@ func (a *Pix) GetKey(addressingKeyValue string, ownerDocument string) (*PixKeyRe
 func (a *Pix) Get(req *PixCashOutGet) (*TransferResponse, *Error, error) {
 	var response *TransferResponse
 	err, errApi := a.client.Request("GET", fmt.Sprintf("baas/pix/cash-out/accounts/%s/authenticationcode/%s", req.Account, req.AuthenticationCode), "", nil, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Pix) CreateBrcode(req *BrcodeRequest) (*BrcodeResponse, *Error, error) {
+	var response *BrcodeResponse
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.RequestPix("POST", "baas/pix/qrcodes", "", data, &response)
+	if err != nil {
+		return nil, nil, err
+	}
+	if errApi != nil {
+		return nil, errApi, nil
+	}
+	return response, nil, nil
+}
+
+func (a *Pix) GetBrCode(req *GetBercodeResponse) (*PixKeyResponse, *Error, error) {
+	var response *PixKeyResponse
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.RequestPix("POST", "baas/pix/qrcodes/decode", req.OwnerDocument, data, &response)
 	if err != nil {
 		return nil, nil, err
 	}

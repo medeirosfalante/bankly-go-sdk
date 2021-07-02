@@ -126,7 +126,6 @@ func TestCashOut(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
-	t.Errorf("response : %#v", response)
 	if response == nil {
 		t.Error("response is null")
 		return
@@ -149,7 +148,58 @@ func TestGetPix(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
-	t.Errorf("response : %#v", response)
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+}
+
+func TestCreateBrCode(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Pix().CreateBrcode(&bankly.BrcodeRequest{
+		AddressingKey: &bankly.PixKey{
+			Type:  "CNPJ",
+			Value: "35818953000146",
+		},
+		Amount: 2,
+		Location: &bankly.Location{
+			City:    "SAOPAULO",
+			ZipCode: "11111111",
+		},
+		RecipientName: "JOAO",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+	if response == nil {
+		t.Error("response is null")
+		return
+	}
+}
+
+func TestGetBrCode(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	response, errApi, err := client.Pix().GetBrCode(&bankly.GetBercodeResponse{
+		EncodedValue:  "MDAwMjAxMjYzNjAwMTRici5nb3YuYmNiLnBpeDAxMTQzNTgxODk1MzAwMDE0NjUyMDQwMDAwNTMwMzk4NjU0MDQyLjAwNTgwMkJSNTkwOUpPQU8gSk9BTzYwMDhTQU9QQVVMTzYxMDgxMTExMTExMTYyMDcwNTAzKioqNjMwNDNFOUE=",
+		OwnerDocument: "35818953000146",
+	})
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
 	if response == nil {
 		t.Error("response is null")
 		return
