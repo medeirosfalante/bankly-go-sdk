@@ -67,6 +67,12 @@ type PixKeyCashOutResponse struct {
 	AuthenticationCode string            `json:"authenticationCode"`
 }
 
+type BankPix struct {
+	Name  string `json:"name"`
+	Compe string `json:"compe"`
+	Ispb  string `json:"ispb"`
+}
+
 type PixKeyAccountPeople struct {
 	Branch string `json:"branch"`
 	Number string `json:"number"`
@@ -78,7 +84,7 @@ type PixCashOutPeople struct {
 	Account        *PixKeyAccountPeople `json:"account"`
 	DocumentNumber string               `json:"documentNumber"`
 	Name           string               `json:"name"`
-	Bank           *Bank                `json:"bank"`
+	Bank           *BankPix             `json:"bank"`
 }
 
 type PixCashOutGet struct {
@@ -88,7 +94,7 @@ type PixCashOutGet struct {
 
 type BrcodeRequest struct {
 	AddressingKey  *PixKey   `json:"addressingKey"`
-	Amount         float64   `json:"amount"`
+	Amount         float32   `json:"amount"`
 	ConciliationId string    `json:"conciliationId,omitempty"`
 	CategoryCode   string    `json:"categoryCode,omitempty"`
 	AdditionalData string    `json:"additionalData,omitempty"`

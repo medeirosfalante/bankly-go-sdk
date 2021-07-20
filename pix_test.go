@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -92,10 +93,10 @@ func TestCashOut(t *testing.T) {
 			},
 			DocumentNumber: "35818953000146",
 			Name:           "GENESIS BANK SOLUCOES DE PAGAMENTO LTDA",
-			Bank: &bankly.Bank{
-				Name: "Acesso Soluções de Pagamento S.A.",
-				Code: "332",
-				Ispb: "13140088",
+			Bank: &bankly.BankPix{
+				Name:  "Acesso Soluções de Pagamento S.A.",
+				Compe: "332",
+				Ispb:  "13140088",
 			},
 		},
 		Recipient: &bankly.PixCashOutPeople{
@@ -106,10 +107,10 @@ func TestCashOut(t *testing.T) {
 			},
 			DocumentNumber: "28503661000159",
 			Name:           "ALBERTO ALMEIDA DE AZEVEDO TECNOLOGIA",
-			Bank: &bankly.Bank{
-				Name: "Acesso Soluções de Pagamento S.A.",
-				Code: "332",
-				Ispb: "13140088",
+			Bank: &bankly.BankPix{
+				Name:  "Acesso Soluções de Pagamento S.A.",
+				Compe: "332",
+				Ispb:  "13140088",
 			},
 		},
 		Amount:      10,
@@ -138,7 +139,7 @@ func TestGetPix(t *testing.T) {
 	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
 	response, errApi, err := client.Pix().Get(&bankly.PixCashOutGet{
 		Account:            "199265",
-		AuthenticationCode: "dbe0fc22-7c42-4c2a-afa4-a603cdab864e",
+		AuthenticationCode: "e8b1eb27-5c6b-45be-9d8d-cc05b4c3a8fc",
 	})
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -148,6 +149,8 @@ func TestGetPix(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
+	body, _ := json.Marshal(response)
+	t.Errorf("response : %s", string(body))
 	if response == nil {
 		t.Error("response is null")
 		return

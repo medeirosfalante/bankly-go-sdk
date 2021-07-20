@@ -1,6 +1,9 @@
 package bankly
 
-import "net/url"
+import (
+	"fmt"
+	"net/url"
+)
 
 // Account is a structure manager all about account
 type Services struct {
@@ -38,7 +41,7 @@ func (a *Services) ListBanks(req *ListBanksRequest) (ListBanksResponse, *Error, 
 	if req.Name != "" {
 		params.Add("name", req.Name)
 	}
-	err, errApi := a.client.Request("GET", "banklist", "", nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("banklist?%s", params.Encode()), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}

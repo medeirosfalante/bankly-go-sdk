@@ -14,7 +14,7 @@ func TestListBanks(t *testing.T) {
 	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
 	response, errApi, err := client.Services().ListBanks(&bankly.ListBanksRequest{
 		Product: "PIX",
-		Ids:     []string{},
+		Ids:     []string{"13140088"},
 		Name:    "",
 	})
 	if err != nil {
@@ -25,7 +25,7 @@ func TestListBanks(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
-	t.Errorf("response : %#v", response)
+
 	if response == nil {
 		t.Error("response is null")
 		return
