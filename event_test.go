@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 	"time"
@@ -13,12 +14,12 @@ func TestGetEvent(t *testing.T) {
 	godotenv.Load(".env.test")
 
 	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
-	begin, err := time.Parse(time.RFC3339, "2021-06-26T03:26:01+00:00")
+	begin, err := time.Parse(time.RFC3339, "2021-07-06T21:00:01+00:00")
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
 	}
-	end, err := time.Parse(time.RFC3339, "2021-06-26T03:26:08+00:00")
+	end, err := time.Parse(time.RFC3339, "2021-07-06T21:50:01+00:00")
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
@@ -42,7 +43,8 @@ func TestGetEvent(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
-
+	data, _ := json.Marshal(response)
+	t.Errorf("response : \n%s\n", data)
 	if response == nil {
 		t.Error("response is null")
 		return
