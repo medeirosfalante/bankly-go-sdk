@@ -29,6 +29,7 @@ type PixKeyResponse struct {
 	Status        string         `json:"status"`
 	CreatedAt     *time.Time     `json:"createdAt"`
 	OwnedAt       *time.Time     `json:"ownedAt"`
+	Holder        *PixKeyHolder  `json:"holder,omitempty"`
 }
 
 type PixKeyHolder struct {
@@ -56,6 +57,8 @@ type PixKeyCashOutRequest struct {
 	AddressKey         string            `json:"addressKey"`
 	ConciliationId     string            `json:"conciliationId"`
 	InitializationType string            `json:"initializationType,omitempty"`
+	DocumentNumber     string            `json:"documentNumber"`
+	Name               string            `json:"name"`
 }
 
 type PixKeyCashOutResponse struct {
