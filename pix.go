@@ -97,7 +97,7 @@ type PixCashOutGet struct {
 
 type BrcodeRequest struct {
 	AddressingKey  *PixKey   `json:"addressingKey"`
-	Amount         float32   `json:"amount"`
+	Amount         float32   `json:"amount,omitempty"`
 	ConciliationId string    `json:"conciliationId,omitempty"`
 	CategoryCode   string    `json:"categoryCode,omitempty"`
 	AdditionalData string    `json:"additionalData,omitempty"`
