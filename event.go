@@ -60,6 +60,7 @@ type EventDataExternalTransferResponse struct {
 	Document              string        `json:"document"`
 	CompanyKey            string        `json:"CompanyKey"`
 	ConciliationId        string        `json:"ConciliationId"`
+	EndToEndId            string        `json:"EndToEndId"`
 }
 
 //Event - Instance de vvent
