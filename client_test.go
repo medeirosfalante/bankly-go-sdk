@@ -10,7 +10,7 @@ import (
 
 func TestRequesttoken(t *testing.T) {
 	godotenv.Load(".env.test")
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
 
 	response, err := client.RequestToken()
 	if err != nil {
