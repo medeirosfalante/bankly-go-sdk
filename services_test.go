@@ -11,7 +11,7 @@ import (
 func TestListBanks(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), "")
 	response, errApi, err := client.Services().ListBanks(&bankly.ListBanksRequest{
 		Product: "PIX",
 		Ids:     []string{"13140088"},

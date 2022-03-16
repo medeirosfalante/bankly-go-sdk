@@ -13,7 +13,7 @@ import (
 func TestGetEvent(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().EventsRead)
 	begin, err := time.Parse(time.RFC3339, "2021-07-06T21:00:01+00:00")
 	if err != nil {
 		t.Errorf("err : %s", err)

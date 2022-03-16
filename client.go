@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -15,6 +16,86 @@ import (
 	"time"
 )
 
+type Scope struct {
+	CardCreate             string
+	CardUpdate             string
+	CardRead               string
+	CardPciPassswordUpdate string
+	AccountCreate          string
+	AccountRead            string
+	AccountClose           string
+	CustomerWrite          string
+	CustomerRead           string
+	CustomerCancel         string
+	BusinessWrite          string
+	BusinessRead           string
+	BusinessCancel         string
+	KycDocumentWrite       string
+	KycDocumentRead        string
+	IncomeReportRead       string
+	BoletoCreate           string
+	BoletoRead             string
+	BoletoDelete           string
+	LimitsWrite            string
+	LimitsRead             string
+	PaymentValidate        string
+	PaymentConfirm         string
+	PaymentRead            string
+	TedCashoutCreate       string
+	TedCashoutRead         string
+	PixAccountRead         string
+	PixEntriesCreate       string
+	PixEntriesDelete       string
+	PixEntriesRead         string
+	PixQrcodeCreate        string
+	PixQrcodeRead          string
+	PixCashoutCreate       string
+	PixCashoutRead         string
+	EventsRead             string
+}
+
+func GetScope() Scope {
+
+	return Scope{
+		CardCreate:             "card.create",
+		CardUpdate:             "card.update",
+		CardRead:               "card.read",
+		CardPciPassswordUpdate: "card.pci.password.update",
+		AccountCreate:          "account.create",
+		AccountRead:            "account.read",
+		AccountClose:           "account.close",
+		CustomerWrite:          "customer.write",
+		CustomerRead:           "customer.read",
+		CustomerCancel:         "customer.cancel",
+		BusinessWrite:          "business.write",
+		BusinessRead:           "business.read",
+		BusinessCancel:         "business.cancel",
+		KycDocumentWrite:       "kyc.document.write",
+		KycDocumentRead:        "kyc.document.read",
+		IncomeReportRead:       "income.report.read",
+		BoletoCreate:           "boleto.create",
+		BoletoRead:             "boleto.read",
+		BoletoDelete:           "boleto.delete",
+		LimitsWrite:            "limits.write",
+		LimitsRead:             "limits.read",
+		PaymentValidate:        "payment.validate",
+		PaymentConfirm:         "payment.confirm",
+		PaymentRead:            "payment.read",
+		TedCashoutCreate:       "ted.cashout.create",
+		TedCashoutRead:         "ted.cashout.read",
+		PixAccountRead:         "pix.account.read",
+		PixEntriesCreate:       "pix.entries.create",
+		PixEntriesDelete:       "pix.entries.delete",
+		PixEntriesRead:         "pix.entries.read",
+		PixQrcodeCreate:        "pix.qrcode.create",
+		PixQrcodeRead:          "pix.qrcode.read",
+		PixCashoutCreate:       "pix.cashout.create",
+		PixCashoutRead:         "pix.cashout.read",
+		EventsRead:             "events.read",
+	}
+
+}
+
 type Bankly struct {
 	client       *http.Client
 	ClientID     string
@@ -23,6 +104,7 @@ type Bankly struct {
 	Token        string
 	ApiVersion   string
 	Boundary     string
+	Scope        string
 }
 
 type Error struct {
@@ -43,7 +125,7 @@ type TokenResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-func NewClient(ClientID, ClientSecret, env string) *Bankly {
+func NewClient(ClientID, ClientSecret, env, scope string) *Bankly {
 	bankly := &Bankly{
 		client:       &http.Client{Timeout: 60 * time.Second},
 		ClientID:     ClientID,
@@ -51,6 +133,7 @@ func NewClient(ClientID, ClientSecret, env string) *Bankly {
 		Env:          env,
 		ApiVersion:   "1.0",
 		Boundary:     "---011000010111000001101001",
+		Scope:        scope,
 	}
 	return bankly
 
@@ -230,6 +313,8 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	params.Add("client_secret", bankly.ClientSecret)
 	params.Add("grant_type", "client_credentials")
 	params.Add("client_id", bankly.ClientID)
+	log.Printf("bankly.Scope %s", bankly.Scope)
+	params.Add("scope", bankly.Scope)
 	req, err := http.NewRequest("POST", bankly.TokenUri(), strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, err

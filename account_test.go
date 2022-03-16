@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -16,7 +17,7 @@ var TokenSend = ""
 func TestSendSelfDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().KycDocumentWrite)
 
 	dir, err := os.Getwd()
 	if err != nil {
@@ -52,7 +53,7 @@ func TestSendSelfDocument(t *testing.T) {
 func TestCheckTokenDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().KycDocumentRead)
 	response, errApi, err := client.Account().GetAnalysis("66896639652", []string{TokenSend})
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -77,7 +78,7 @@ func TestRegisterClient(t *testing.T) {
 	str := "1991-02-02T11:45:26.371Z"
 	birthDate, err := time.Parse(time.RFC3339, str)
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().CustomerWrite)
 	errApi, err := client.Account().RegisterClient(&bankly.AccountClient{
 		Phone: &bankly.AccountClientPhone{
 			CountryCode: "55",
@@ -114,7 +115,7 @@ func TestRegisterClient(t *testing.T) {
 func TestDetailDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
 	response, errApi, err := client.Account().GetClient("66896639652", "DETAILED")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -136,7 +137,7 @@ func TestDetailDocument(t *testing.T) {
 func TestRegisterAccountDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountCreate)
 	response, errApi, err := client.Account().RegisterAccount(&bankly.RequestNewAccount{
 		AccountType:    "PAYMENT_ACCOUNT",
 		DocumentNumber: "66896639652",
@@ -161,7 +162,7 @@ func TestRegisterAccountDocument(t *testing.T) {
 func TestGetAccountsDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
 	response, errApi, err := client.Account().GetAccounts("66896639652")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -183,7 +184,7 @@ func TestGetAccountsDocument(t *testing.T) {
 func TestGetStatement(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
 	response, errApi, err := client.Account().GetStatement(&bankly.StatementRequest{
 		Branch:  "0001",
 		Account: "189863",
@@ -211,8 +212,8 @@ func TestGetStatement(t *testing.T) {
 func TestGetAccountDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
-	response, errApi, err := client.Account().GetAccount("189863", true)
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
+	response, errApi, err := client.Account().GetAccount("44409281", true)
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
@@ -222,6 +223,8 @@ func TestGetAccountDocument(t *testing.T) {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
+	balance, _ := json.Marshal(response)
+	t.Errorf("response : %s\n", balance)
 
 	if response == nil {
 		t.Error("response is null")

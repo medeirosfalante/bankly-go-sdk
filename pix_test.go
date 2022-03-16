@@ -12,7 +12,7 @@ import (
 func TestGetKeys(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixAccountRead)
 	response, errApi, err := client.Pix().GetKeys("199265")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -34,7 +34,7 @@ func TestGetKeys(t *testing.T) {
 func TestCreateKey(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixEntriesCreate)
 	response, errApi, err := client.Pix().CreateKey(&bankly.PixCreateKeyRequest{
 		AddressingKey: &bankly.PixKey{
 			Type:  "CNPJ",
@@ -64,7 +64,7 @@ func TestCreateKey(t *testing.T) {
 func TestGetKey(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixEntriesRead)
 	response, errApi, err := client.Pix().GetKey("35818953000146", "35818953000146")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -83,7 +83,7 @@ func TestGetKey(t *testing.T) {
 func TestCashOut(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixCashoutCreate)
 	response, errApi, err := client.Pix().CreateCashOut(&bankly.PixKeyCashOutRequest{
 		Sender: &bankly.PixCashOutPeople{
 			Account: &bankly.PixKeyAccountPeople{
@@ -136,7 +136,7 @@ func TestCashOut(t *testing.T) {
 func TestGetPix(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixCashoutRead)
 	response, errApi, err := client.Pix().Get(&bankly.PixCashOutGet{
 		Account:            "199265",
 		AuthenticationCode: "e8b1eb27-5c6b-45be-9d8d-cc05b4c3a8fc",
@@ -160,7 +160,7 @@ func TestGetPix(t *testing.T) {
 func TestCreateBrCode(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixQrcodeCreate)
 	response, errApi, err := client.Pix().CreateBrcode(&bankly.BrcodeRequest{
 		AddressingKey: &bankly.PixKey{
 			Type:  "CNPJ",
@@ -190,7 +190,7 @@ func TestCreateBrCode(t *testing.T) {
 func TestGetBrCode(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixQrcodeRead)
 	response, errApi, err := client.Pix().GetBrCode(&bankly.GetBercodeResponse{
 		EncodedValue:  "MDAwMjAxMjYzNjAwMTRici5nb3YuYmNiLnBpeDAxMTQzNTgxODk1MzAwMDE0NjUyMDQwMDAwNTMwMzk4NjU0MDQyLjAwNTgwMkJSNTkwOUpPQU8gSk9BTzYwMDhTQU9QQVVMTzYxMDgxMTExMTExMTYyMDcwNTAzKioqNjMwNDNFOUE=",
 		OwnerDocument: "35818953000146",

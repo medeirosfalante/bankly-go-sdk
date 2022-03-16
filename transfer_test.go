@@ -12,7 +12,7 @@ import (
 func TestCreateTransfer(t *testing.T) {
 	godotenv.Load(".env.test")
 	uuid := uuid.NewV4()
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().TedCashoutCreate)
 	response, errApi, err := client.Transfer().Create(&bankly.TransferRequest{
 		Sender: &bankly.TransferSender{
 			Branch:   "0001",
@@ -51,12 +51,12 @@ func TestCreateTransfer(t *testing.T) {
 
 func TestGetTransfer(t *testing.T) {
 	godotenv.Load(".env.test")
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"))
+	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().TedCashoutRead)
 	response, errApi, err := client.Transfer().Get(&bankly.TransferGet{
 		Branch:             "0001",
 		Account:            "199265",
 		CorrelationID:      "167a0eb3-3cb2-4767-b7f4-be6ea7d4edf4",
-		AuthenticationCode: "8bb6a7a8-5482-4e6e-9cc9-7f544e98f69e",
+		AuthenticationCode: "04ffa878-ad47-4fd1-8019-22632ba245b9",
 	})
 	if err != nil {
 		t.Errorf("err : %s", err)
