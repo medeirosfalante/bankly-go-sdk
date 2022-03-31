@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Account is a structure manager all about account
@@ -125,9 +127,10 @@ func (c *Bankly) Pix() *Pix {
 }
 
 func (a *Pix) CreateCashOut(req *PixKeyCashOutRequest) (*PixKeyCashOutResponse, *Error, error) {
+	uuid := uuid.NewV4()
 	var response *PixKeyCashOutResponse
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.RequestPix("POST", "baas/pix/cash-out", "", data, &response)
+	err, errApi := a.client.RequestPix("POST", "pix/cash-out", uuid.String(), "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -138,8 +141,9 @@ func (a *Pix) CreateCashOut(req *PixKeyCashOutRequest) (*PixKeyCashOutResponse, 
 }
 
 func (a *Pix) GetKeys(accountNumber string) (*PixKeys, *Error, error) {
+	uuid := uuid.NewV4()
 	var response *PixKeys
-	err, errApi := a.client.RequestPix("GET", fmt.Sprintf("baas/accounts/%s/addressing-keys", accountNumber), "", nil, &response)
+	err, errApi := a.client.RequestPix("GET", fmt.Sprintf("accounts/%s/addressing-keys", accountNumber), uuid.String(), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -151,8 +155,9 @@ func (a *Pix) GetKeys(accountNumber string) (*PixKeys, *Error, error) {
 
 func (a *Pix) CreateKey(req *PixCreateKeyRequest) (*PixKeyResponse, *Error, error) {
 	var response *PixKeyResponse
+	uuid := uuid.NewV4()
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.RequestPix("POST", "baas/pix/entries", "", data, &response)
+	err, errApi := a.client.RequestPix("POST", "baas/pix/entries", uuid.String(), "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -164,7 +169,8 @@ func (a *Pix) CreateKey(req *PixCreateKeyRequest) (*PixKeyResponse, *Error, erro
 
 func (a *Pix) GetKey(addressingKeyValue string, ownerDocument string) (*PixKeyResponse, *Error, error) {
 	var response *PixKeyResponse
-	err, errApi := a.client.RequestPix("GET", fmt.Sprintf("baas/pix/entries/%s", addressingKeyValue), ownerDocument, nil, &response)
+	uuid := uuid.NewV4()
+	err, errApi := a.client.RequestPix("GET", fmt.Sprintf("pix/entries/%s", addressingKeyValue), uuid.String(), ownerDocument, nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -176,7 +182,7 @@ func (a *Pix) GetKey(addressingKeyValue string, ownerDocument string) (*PixKeyRe
 
 func (a *Pix) Get(req *PixCashOutGet) (*TransferResponse, *Error, error) {
 	var response *TransferResponse
-	err, errApi := a.client.Request("GET", fmt.Sprintf("baas/pix/cash-out/accounts/%s/authenticationcode/%s", req.Account, req.AuthenticationCode), "", nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("pix/cash-out/accounts/%s/authenticationcode/%s", req.Account, req.AuthenticationCode), "", nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -188,8 +194,9 @@ func (a *Pix) Get(req *PixCashOutGet) (*TransferResponse, *Error, error) {
 
 func (a *Pix) CreateBrcode(req *BrcodeRequest) (*BrcodeResponse, *Error, error) {
 	var response *BrcodeResponse
+	uuid := uuid.NewV4()
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.RequestPix("POST", "baas/pix/qrcodes", "", data, &response)
+	err, errApi := a.client.RequestPix("POST", "pix/qrcodes", uuid.String(), "", data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -201,8 +208,9 @@ func (a *Pix) CreateBrcode(req *BrcodeRequest) (*BrcodeResponse, *Error, error) 
 
 func (a *Pix) GetBrCode(req *GetBercodeResponse) (*PixKeyResponse, *Error, error) {
 	var response *PixKeyResponse
+	uuid := uuid.NewV4()
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.RequestPix("POST", "baas/pix/qrcodes/decode", req.OwnerDocument, data, &response)
+	err, errApi := a.client.RequestPix("POST", "pix/qrcodes/decode", uuid.String(), req.OwnerDocument, data, &response)
 	if err != nil {
 		return nil, nil, err
 	}
