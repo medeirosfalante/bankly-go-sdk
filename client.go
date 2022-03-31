@@ -238,7 +238,7 @@ func (bankly *Bankly) Request(method, action, correlationID string, body []byte,
 	return err, errBody
 }
 
-func (bankly *Bankly) RequestPix(method, action, xBklyPixUserId string, body []byte, out interface{}) (error, *Error) {
+func (bankly *Bankly) RequestPix(method, action, correlationID, xBklyPixUserId string, body []byte, out interface{}) (error, *Error) {
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
@@ -247,6 +247,9 @@ func (bankly *Bankly) RequestPix(method, action, xBklyPixUserId string, body []b
 	}
 	if xBklyPixUserId != "" {
 		req.Header.Add("x-bkly-pix-user-id", xBklyPixUserId)
+	}
+	if correlationID != "" {
+		req.Header.Add("x-correlation-id", correlationID)
 	}
 	_, err, errBody := bankly.RequestMaster(req, &out)
 	return err, errBody
@@ -275,8 +278,6 @@ func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte,
 		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	fmt.Printf("Authorization \n%s\n ", fmt.Sprintf("Bearer %s", bankly.Token))
-	fmt.Printf("bodyResponse \n%s\n ", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -322,9 +323,11 @@ func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bo
 	params := url.Values{}
 	params.Add("grant_type", "client_credentials")
 	params.Add("client_id", clientID)
-	params.Add("scope", scope)
 	if clientSecret != "" {
 		params.Add("client_secret", clientSecret)
+	}
+	if scope != "" {
+		params.Add("scope", scope)
 	}
 
 	urlRef := bankly.TokenUri()
