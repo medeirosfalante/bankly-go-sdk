@@ -12,7 +12,14 @@ import (
 func TestCreateTransfer(t *testing.T) {
 	godotenv.Load(".env.test")
 	uuid := uuid.NewV4()
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().TedCashoutCreate)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().TedCashoutCreate, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
+
 	response, errApi, err := client.Transfer().Create(&bankly.TransferRequest{
 		Sender: &bankly.TransferSender{
 			Branch:   "0001",
@@ -51,7 +58,13 @@ func TestCreateTransfer(t *testing.T) {
 
 func TestGetTransfer(t *testing.T) {
 	godotenv.Load(".env.test")
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().TedCashoutRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().TedCashoutRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Transfer().Get(&bankly.TransferGet{
 		Branch:             "0001",
 		Account:            "199265",

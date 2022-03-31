@@ -1,7 +1,9 @@
 package bankly_test
 
 import (
+	"crypto/tls"
 	"encoding/json"
+	"log"
 	"os"
 	"testing"
 
@@ -12,7 +14,13 @@ import (
 func TestGetKeys(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixAccountRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixAccountRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Pix().GetKeys("199265")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -34,7 +42,13 @@ func TestGetKeys(t *testing.T) {
 func TestCreateKey(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixEntriesCreate)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixEntriesCreate, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Pix().CreateKey(&bankly.PixCreateKeyRequest{
 		AddressingKey: &bankly.PixKey{
 			Type:  "CNPJ",
@@ -64,7 +78,13 @@ func TestCreateKey(t *testing.T) {
 func TestGetKey(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixEntriesRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixEntriesRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Pix().GetKey("35818953000146", "35818953000146")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -83,7 +103,13 @@ func TestGetKey(t *testing.T) {
 func TestCashOut(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixCashoutCreate)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixCashoutCreate, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Pix().CreateCashOut(&bankly.PixKeyCashOutRequest{
 		Sender: &bankly.PixCashOutPeople{
 			Account: &bankly.PixKeyAccountPeople{
@@ -136,7 +162,13 @@ func TestCashOut(t *testing.T) {
 func TestGetPix(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixCashoutRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixCashoutRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Pix().Get(&bankly.PixCashOutGet{
 		Account:            "199265",
 		AuthenticationCode: "e8b1eb27-5c6b-45be-9d8d-cc05b4c3a8fc",
@@ -160,8 +192,53 @@ func TestGetPix(t *testing.T) {
 func TestCreateBrCode(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixQrcodeCreate)
-	response, errApi, err := client.Pix().CreateBrcode(&bankly.BrcodeRequest{
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		log.Fatalf("could not load certificate: %v", err)
+	}
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixQrcodeCreate, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
+	client.SetCertificateMtls(certificate)
+	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
+		GrantTypes:              []string{"client_credentials"},
+		TlsClientAuthSubjectDn:  os.Getenv("BANKLY_SUBJECT_DN"),
+		TokenEndpointAuthMethod: "tls_client_auth",
+		ResponseTypes:           []string{"access_token"},
+		CompanyKey:              os.Getenv("COMPANYKEY"),
+		Scope:                   bankly.GetScope().PixQrcodeCreate,
+	})
+
+	if err != nil {
+		t.Errorf("err : responseMtls %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi responseMtls : %#v", errApi.Message)
+		return
+	}
+
+	clientPix := bankly.NewClient(os.Getenv("ENV"))
+	clientPix.SetCertificateMtls(certificate)
+	responseTokenPix, err := clientPix.RequestToken(responseMtls.ClientID, "", bankly.GetScope().PixQrcodeCreate, true)
+	if err != nil {
+		t.Errorf("err : responseTokenPix%s", err)
+		return
+	}
+	clientPix.SetBearer(responseTokenPix.AccessToken)
+	clientPix.SetCertificateMtls(certificate)
+
+	response, errApi, err := clientPix.Pix().CreateBrcode(&bankly.BrcodeRequest{
 		AddressingKey: &bankly.PixKey{
 			Type:  "CNPJ",
 			Value: "35818953000146",
@@ -178,7 +255,7 @@ func TestCreateBrCode(t *testing.T) {
 		return
 	}
 	if errApi != nil {
-		t.Errorf("errApi : %#v", errApi)
+
 		return
 	}
 	if response == nil {
@@ -190,7 +267,25 @@ func TestCreateBrCode(t *testing.T) {
 func TestGetBrCode(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().PixQrcodeRead)
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		log.Fatalf("could not load certificate: %v", err)
+	}
+
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixQrcodeRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
+	client.SetCertificateMtls(certificate)
 	response, errApi, err := client.Pix().GetBrCode(&bankly.GetBercodeResponse{
 		EncodedValue:  "MDAwMjAxMjYzNjAwMTRici5nb3YuYmNiLnBpeDAxMTQzNTgxODk1MzAwMDE0NjUyMDQwMDAwNTMwMzk4NjU0MDQyLjAwNTgwMkJSNTkwOUpPQU8gSk9BTzYwMDhTQU9QQVVMTzYxMDgxMTExMTExMTYyMDcwNTAzKioqNjMwNDNFOUE=",
 		OwnerDocument: "35818953000146",

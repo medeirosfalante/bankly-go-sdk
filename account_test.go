@@ -17,13 +17,18 @@ var TokenSend = ""
 func TestSendSelfDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().KycDocumentWrite)
+	client := bankly.NewClient(os.Getenv("ENV"))
 
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().KycDocumentWrite, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	response, errApi, err := client.Account().SendDocument(&bankly.AccountDocumentRequest{
 		DocumentType: "SELFIE",
 		DocumentSide: "FRONT",
@@ -53,7 +58,13 @@ func TestSendSelfDocument(t *testing.T) {
 func TestCheckTokenDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().KycDocumentRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().KycDocumentRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().GetAnalysis("66896639652", []string{TokenSend})
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -78,7 +89,14 @@ func TestRegisterClient(t *testing.T) {
 	str := "1991-02-02T11:45:26.371Z"
 	birthDate, err := time.Parse(time.RFC3339, str)
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().CustomerWrite)
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().KycDocumentRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	errApi, err := client.Account().RegisterClient(&bankly.AccountClient{
 		Phone: &bankly.AccountClientPhone{
 			CountryCode: "55",
@@ -115,7 +133,13 @@ func TestRegisterClient(t *testing.T) {
 func TestDetailDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().AccountRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().GetClient("66896639652", "DETAILED")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -137,7 +161,13 @@ func TestDetailDocument(t *testing.T) {
 func TestRegisterAccountDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountCreate)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().AccountCreate, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().RegisterAccount(&bankly.RequestNewAccount{
 		AccountType:    "PAYMENT_ACCOUNT",
 		DocumentNumber: "66896639652",
@@ -162,7 +192,13 @@ func TestRegisterAccountDocument(t *testing.T) {
 func TestGetAccountsDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().AccountRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().GetAccounts("66896639652")
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -184,7 +220,13 @@ func TestGetAccountsDocument(t *testing.T) {
 func TestGetStatement(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().AccountRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().GetStatement(&bankly.StatementRequest{
 		Branch:  "0001",
 		Account: "189863",
@@ -212,7 +254,13 @@ func TestGetStatement(t *testing.T) {
 func TestGetAccountDocument(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), os.Getenv("ENV"), bankly.GetScope().AccountRead)
+	client := bankly.NewClient(os.Getenv("ENV"))
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().AccountRead, false)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.Account().GetAccount("44409281", true)
 	if err != nil {
 		t.Errorf("err : %s", err)
