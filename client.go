@@ -2,11 +2,11 @@ package bankly
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
@@ -97,14 +97,12 @@ func GetScope() Scope {
 }
 
 type Bankly struct {
-	client       *http.Client
-	ClientID     string
-	ClientSecret string
-	Env          string
-	Token        string
-	ApiVersion   string
-	Boundary     string
-	Scope        string
+	Client     *http.Client
+	Env        string
+	Token      string
+	ApiVersion string
+	Boundary   string
+	Scope      string
 }
 
 type Error struct {
@@ -123,17 +121,15 @@ type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int    `json:"expires_in"`
 	TokenType   string `json:"token_type"`
+	Client      *Bankly
 }
 
-func NewClient(ClientID, ClientSecret, env, scope string) *Bankly {
+func NewClient(env string) *Bankly {
 	bankly := &Bankly{
-		client:       &http.Client{Timeout: 60 * time.Second},
-		ClientID:     ClientID,
-		ClientSecret: ClientSecret,
-		Env:          env,
-		ApiVersion:   "1.0",
-		Boundary:     "---011000010111000001101001",
-		Scope:        scope,
+		Client:     &http.Client{Timeout: 60 * time.Second},
+		Env:        env,
+		ApiVersion: "1.0",
+		Boundary:   "---011000010111000001101001",
 	}
 	return bankly
 
@@ -186,16 +182,12 @@ func (bankly *Bankly) RequestFile(method, action, filepathRef, documentType, doc
 	if err != nil {
 		return err, nil
 	}
-	_, err = bankly.RequestToken()
-	if err != nil {
-		return err, nil
-	}
 
 	req.Header.Add("api-version", bankly.ApiVersion)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
-	res, err := bankly.client.Do(req)
+	res, err := bankly.Client.Do(req)
 	if err != nil {
 		return err, nil
 	}
@@ -260,20 +252,31 @@ func (bankly *Bankly) RequestPix(method, action, xBklyPixUserId string, body []b
 	return err, errBody
 }
 
-func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte, error, *Error) {
-	_, err := bankly.RequestToken()
+func (bankly *Bankly) RequestMtls(method, action, xBklyPixUserId string, body []byte, out interface{}) (error, *Error) {
+	url := bankly.devProdMtls()
+	endpoint := fmt.Sprintf("%s/%s", url, action)
+	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, err, nil
+		return err, nil
 	}
+	if xBklyPixUserId != "" {
+		req.Header.Add("x-bkly-pix-user-id", xBklyPixUserId)
+	}
+	_, err, errBody := bankly.RequestMaster(req, &out)
+	return err, errBody
+}
 
+func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte, error, *Error) {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", bankly.Token))
 	req.Header.Add("api-version", bankly.ApiVersion)
-	res, err := bankly.client.Do(req)
+	res, err := bankly.Client.Do(req)
 	if err != nil {
 		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	fmt.Printf("Authorization \n%s\n ", fmt.Sprintf("Bearer %s", bankly.Token))
+	fmt.Printf("bodyResponse \n%s\n ", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -307,24 +310,39 @@ func (Bankly *Bankly) TokenUri() string {
 	return "https://login.bankly.com.br/connect/token"
 }
 
-func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
+func (Bankly *Bankly) TokenUriMTls() string {
+	if Bankly.Env == "develop" {
+		return "https://auth-mtls.sandbox.bankly.com.br/oauth2/token"
+	}
+	return "https://auth-mtls.bankly.com.br/oauth2/token"
+}
+
+func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bool) (*TokenResponse, error) {
 	var tokenResponse TokenResponse
 	params := url.Values{}
-	params.Add("client_secret", bankly.ClientSecret)
 	params.Add("grant_type", "client_credentials")
-	params.Add("client_id", bankly.ClientID)
-	log.Printf("bankly.Scope %s", bankly.Scope)
-	params.Add("scope", bankly.Scope)
-	req, err := http.NewRequest("POST", bankly.TokenUri(), strings.NewReader(params.Encode()))
+	params.Add("client_id", clientID)
+	params.Add("scope", scope)
+	if clientSecret != "" {
+		params.Add("client_secret", clientSecret)
+	}
+
+	urlRef := bankly.TokenUri()
+	if mtls {
+		urlRef = bankly.TokenUriMTls()
+	}
+
+	req, err := http.NewRequest("POST", urlRef, strings.NewReader(params.Encode()))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
+	res, err := bankly.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	fmt.Printf("bodyResponse \n%s\n ", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -341,6 +359,22 @@ func (bankly *Bankly) RequestToken() (*TokenResponse, error) {
 	return &tokenResponse, nil
 }
 
+func (bankly *Bankly) SetBearer(token string) {
+	bankly.Token = token
+}
+
+func (bankly *Bankly) SetCertificateMtls(certificate tls.Certificate) *Bankly {
+	bankly.Client = &http.Client{
+		Timeout: time.Minute * 3,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				Certificates: []tls.Certificate{certificate},
+			},
+		},
+	}
+	return bankly
+}
+
 func (bankly *Bankly) GetFileContentType(out *os.File) (string, error) {
 
 	buffer := make([]byte, 512)
@@ -351,4 +385,11 @@ func (bankly *Bankly) GetFileContentType(out *os.File) (string, error) {
 	contentType := http.DetectContentType(buffer)
 
 	return contentType, nil
+}
+
+func (Bankly *Bankly) devProdMtls() string {
+	if Bankly.Env == "develop" {
+		return "https://auth-mtls.sandbox.bankly.com.br"
+	}
+	return "https://auth-mtls.bankly.com.br"
 }
