@@ -3,7 +3,6 @@ package bankly_test
 import (
 	"crypto/tls"
 	"encoding/json"
-	"log"
 	"os"
 	"testing"
 
@@ -194,21 +193,17 @@ func TestCreateBrCode(t *testing.T) {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf("Getwd: %v", err)
+		return
 	}
 
 	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
 	if err != nil {
-		log.Fatalf("could not load certificate: %v", err)
+		t.Errorf("could not load certificate: %v", err)
+		return
 	}
 	client := bankly.NewClient(os.Getenv("ENV"))
 
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixQrcodeCreate, false)
-	if err != nil {
-		t.Errorf("err : %s", err)
-		return
-	}
-	client.SetBearer(responseToken.AccessToken)
 	client.SetCertificateMtls(certificate)
 	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
 		GrantTypes:              []string{"client_credentials"},
@@ -269,12 +264,14 @@ func TestGetBrCode(t *testing.T) {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf("err : %s", err)
+		return
 	}
 
 	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
 	if err != nil {
-		log.Fatalf("could not load certificate: %v", err)
+		t.Errorf("could not load certificate: %v", err)
+		return
 	}
 
 	client := bankly.NewClient(os.Getenv("ENV"))

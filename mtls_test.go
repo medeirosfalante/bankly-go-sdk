@@ -2,7 +2,6 @@ package bankly_test
 
 import (
 	"crypto/tls"
-	"log"
 	"os"
 	"testing"
 
@@ -15,22 +14,18 @@ func TestGetClientIDMtls(t *testing.T) {
 
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf("Getwd: %v", err)
+		return
 	}
 
 	scope := bankly.GetScope().PixAccountRead
 
 	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
 	if err != nil {
-		log.Fatalf("could not load certificate: %v", err)
-	}
-	client := bankly.NewClient(os.Getenv("ENV"))
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), scope, false)
-	if err != nil {
-		t.Errorf("err : %s", err)
+		t.Errorf("could not load certificate: %v", err)
 		return
 	}
-	client.SetBearer(responseToken.AccessToken)
+	client := bankly.NewClient(os.Getenv("ENV"))
 	client.SetCertificateMtls(certificate)
 
 	response, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
@@ -41,6 +36,7 @@ func TestGetClientIDMtls(t *testing.T) {
 		CompanyKey:              os.Getenv("COMPANYKEY"),
 		Scope:                   scope,
 	})
+
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
@@ -52,6 +48,23 @@ func TestGetClientIDMtls(t *testing.T) {
 	}
 
 	if response == nil {
+		t.Error("response is null")
+		return
+	}
+	client.SetCertificateMtls(certificate)
+
+	responseToken, err := client.RequestToken(response.ClientID, "", scope, true)
+	if err != nil {
+		t.Errorf("err : %s", err)
+		return
+	}
+
+	if errApi != nil {
+		t.Errorf("errApi : %#v", errApi)
+		return
+	}
+
+	if responseToken == nil {
 		t.Error("response is null")
 		return
 	}

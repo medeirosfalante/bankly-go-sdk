@@ -13,14 +13,14 @@ func TestGetPaylBill(t *testing.T) {
 
 	client := bankly.NewClient(os.Getenv("ENV"))
 
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixQrcodeRead, false)
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PaymentValidate, false)
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
 	}
 	client.SetBearer(responseToken.AccessToken)
 	response, errApi, err := client.PayBill().Validate(&bankly.ValidateBillRequest{
-		Code:          "",
+		Code:          "83690000001678040081005860754563317001709548695",
 		CorrelationID: "233e8bcd-b641-4448-8bf2-9b5288a1d5ad",
 	})
 	if err != nil {
