@@ -8,31 +8,34 @@ import (
 	"github.com/medeirosfalante/bankly-go-sdk"
 )
 
-func TestGetPaylBill(t *testing.T) {
+func TestGetLimit(t *testing.T) {
 	godotenv.Load(".env.test")
-
 	client := bankly.NewClient(os.Getenv("ENV"))
-
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PaymentValidate, false)
+	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().LimitsRead, false)
 	if err != nil {
-		t.Errorf("err : %s", err)
+		t.Errorf("err token : %s", err)
 		return
 	}
 	client.SetBearer(responseToken.AccessToken)
-	response, errApi, err := client.PayBill().Validate(&bankly.ValidateBillRequest{
-		Code:          "83690000001678040081005860754563317001709548695",
-		CorrelationID: "233e8bcd-b641-4448-8bf2-9b5288a1d5ad",
+	response, errApi, err := client.Limit().Get(&bankly.LimitGet{
+		DocumentNumber: "41246542000126",
+		FeatureName:    "SPI",
+		CycleType:      bankly.GetLimitType().Monthly,
+		LevelType:      "Account",
 	})
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
 	}
+
 	if errApi != nil {
 		t.Errorf("errApi : %#v", errApi)
 		return
 	}
+
 	if response == nil {
 		t.Error("response is null")
 		return
 	}
+
 }

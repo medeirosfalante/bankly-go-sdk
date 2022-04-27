@@ -135,7 +135,8 @@ func (a *PayBill) Get(req *GetBillRequest) (*Bill, *Error, error) {
 
 func (a *PayBill) Validate(req *ValidateBillRequest) (*ValidateBillResponse, *Error, error) {
 	var response *ValidateBillResponse
-	err, errApi := a.client.Request("POST", "bill-payment/validate", req.CorrelationID, nil, &response)
+	data, _ := json.Marshal(req)
+	err, errApi := a.client.Request("POST", "bill-payment/validate", req.CorrelationID, data, &response)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -3,7 +3,6 @@ package bankly_test
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -27,7 +26,8 @@ func TestSendSelfDocument(t *testing.T) {
 	client.SetBearer(responseToken.AccessToken)
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Fatal(err)
+		t.Errorf("err : %s", err)
+		return
 	}
 	response, errApi, err := client.Account().SendDocument(&bankly.AccountDocumentRequest{
 		DocumentType: "SELFIE",

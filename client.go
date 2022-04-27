@@ -54,6 +54,12 @@ type Scope struct {
 	EventsRead             string
 }
 
+type LimitType struct {
+	Transaction string
+	Daily       string
+	Monthly     string
+}
+
 func GetScope() Scope {
 
 	return Scope{
@@ -92,6 +98,15 @@ func GetScope() Scope {
 		PixCashoutCreate:       "pix.cashout.create",
 		PixCashoutRead:         "pix.cashout.read",
 		EventsRead:             "events.read",
+	}
+
+}
+
+func GetLimitType() LimitType {
+	return LimitType{
+		Transaction: "Transaction",
+		Daily:       "Daily",
+		Monthly:     "Monthly",
 	}
 
 }
@@ -224,6 +239,7 @@ func (bankly *Bankly) RequestGetFile(action string) ([]byte, error, *Error) {
 func (bankly *Bankly) Request(method, action, correlationID string, body []byte, out interface{}) (error, *Error) {
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
+	fmt.Printf("endpoint \n%s\n", endpoint)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err, nil
@@ -262,6 +278,7 @@ func (bankly *Bankly) RequestMtls(method, action, xBklyPixUserId string, body []
 	if err != nil {
 		return err, nil
 	}
+	fmt.Printf("endpoint %s", endpoint)
 	if xBklyPixUserId != "" {
 		req.Header.Add("x-bkly-pix-user-id", xBklyPixUserId)
 	}
@@ -278,6 +295,7 @@ func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte,
 		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	fmt.Printf("bodyResponse \n%s\n", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -315,7 +333,7 @@ func (Bankly *Bankly) TokenUriMTls() string {
 	if Bankly.Env == "develop" {
 		return "https://auth-mtls.sandbox.bankly.com.br/oauth2/token"
 	}
-	return "https://auth-mtls.bankly.com.br/oauth2/token"
+	return "https://auth.bankly.com.br/oauth2/token"
 }
 
 func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bool) (*TokenResponse, error) {
@@ -329,11 +347,14 @@ func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bo
 	if scope != "" {
 		params.Add("scope", scope)
 	}
+	fmt.Printf("params %#v", params.Encode())
 
 	urlRef := bankly.TokenUri()
 	if mtls {
 		urlRef = bankly.TokenUriMTls()
 	}
+
+	fmt.Printf("urlRef %s", urlRef)
 
 	req, err := http.NewRequest("POST", urlRef, strings.NewReader(params.Encode()))
 	if err != nil {
@@ -344,8 +365,7 @@ func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bo
 	if err != nil {
 		return nil, err
 	}
-	bodyResponse, err := ioutil.ReadAll(res.Body)
-	fmt.Printf("bodyResponse \n%s\n ", string(bodyResponse))
+	bodyResponse, _ := ioutil.ReadAll(res.Body)
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -394,5 +414,5 @@ func (Bankly *Bankly) devProdMtls() string {
 	if Bankly.Env == "develop" {
 		return "https://auth-mtls.sandbox.bankly.com.br"
 	}
-	return "https://auth-mtls.bankly.com.br"
+	return "https://auth.bankly.com.br"
 }
