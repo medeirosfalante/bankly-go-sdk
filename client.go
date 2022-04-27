@@ -54,6 +54,12 @@ type Scope struct {
 	EventsRead             string
 }
 
+type LimitType struct {
+	Transaction string
+	Daily       string
+	Monthly     string
+}
+
 func GetScope() Scope {
 
 	return Scope{
@@ -92,6 +98,15 @@ func GetScope() Scope {
 		PixCashoutCreate:       "pix.cashout.create",
 		PixCashoutRead:         "pix.cashout.read",
 		EventsRead:             "events.read",
+	}
+
+}
+
+func GetLimitType() LimitType {
+	return LimitType{
+		Transaction: "Transaction",
+		Daily:       "Daily",
+		Monthly:     "Monthly",
 	}
 
 }
@@ -224,6 +239,7 @@ func (bankly *Bankly) RequestGetFile(action string) ([]byte, error, *Error) {
 func (bankly *Bankly) Request(method, action, correlationID string, body []byte, out interface{}) (error, *Error) {
 	url := bankly.devProd()
 	endpoint := fmt.Sprintf("%s/%s", url, action)
+	fmt.Printf("endpoint \n%s\n", endpoint)
 	req, err := http.NewRequest(method, endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err, nil
@@ -279,6 +295,7 @@ func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte,
 		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
+	fmt.Printf("bodyResponse \n%s\n", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
