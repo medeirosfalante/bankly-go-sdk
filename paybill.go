@@ -56,12 +56,12 @@ type ValidateBillCharges struct {
 }
 
 type ConfirmBillRequest struct {
-	Code          string `json:"code"`
-	CorrelationID string `json:"correlationId"`
-	Description   string `json:"description"`
-	BankBranch    string `json:"bankBranch"`
-	BankAccount   string `json:"bankAccount"`
-	ID            string `json:"id"`
+	CorrelationID string  `json:"correlationId"`
+	Description   string  `json:"description"`
+	BankBranch    string  `json:"bankBranch"`
+	BankAccount   string  `json:"bankAccount"`
+	ID            string  `json:"id"`
+	Amount        float32 `json:"amount"`
 }
 
 type GetBillRequest struct {
@@ -123,7 +123,7 @@ func (a *PayBill) Get(req *GetBillRequest) (*Bill, *Error, error) {
 	params.Add("bankBranch", req.BankBranch)
 	params.Add("bankAccount", req.BankAccount)
 	params.Add("authenticationCode", req.AuthenticationCode)
-	err, errApi := a.client.Request("POST", fmt.Sprintf("bill-payment/detail?%s", params.Encode()), req.CorrelationID, nil, &response)
+	err, errApi := a.client.Request("GET", fmt.Sprintf("bill-payment/detail?%s", params.Encode()), req.CorrelationID, nil, &response)
 	if err != nil {
 		return nil, nil, err
 	}
