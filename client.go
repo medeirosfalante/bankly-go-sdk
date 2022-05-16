@@ -121,9 +121,9 @@ type Bankly struct {
 }
 
 type Error struct {
-	ErrorCode int    `json:"errorCode"`
-	Message   string `json:"message"`
-	Body      string `json:"body"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Body    string `json:"body"`
 }
 
 type TokenRequest struct {
