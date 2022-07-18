@@ -121,7 +121,7 @@ type Bankly struct {
 }
 
 type Error struct {
-	Code    string `json:"code"`
+	Code    string `json:"errorCode"`
 	Message string `json:"message"`
 	Body    string `json:"body"`
 }
@@ -295,7 +295,7 @@ func (bankly *Bankly) RequestMaster(req *http.Request, out interface{}) ([]byte,
 		return nil, err, nil
 	}
 	bodyResponse, err := ioutil.ReadAll(res.Body)
-	fmt.Printf("bodyResponse \n%s\n", string(bodyResponse))
+	fmt.Printf("bodyResponse[RequestMaster]  \n%s\n", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)
@@ -347,14 +347,11 @@ func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bo
 	if scope != "" {
 		params.Add("scope", scope)
 	}
-	fmt.Printf("params %#v", params.Encode())
 
 	urlRef := bankly.TokenUri()
 	if mtls {
 		urlRef = bankly.TokenUriMTls()
 	}
-
-	fmt.Printf("urlRef %s", urlRef)
 
 	req, err := http.NewRequest("POST", urlRef, strings.NewReader(params.Encode()))
 	if err != nil {
@@ -366,6 +363,7 @@ func (bankly *Bankly) RequestToken(clientID, clientSecret, scope string, mtls bo
 		return nil, err
 	}
 	bodyResponse, _ := ioutil.ReadAll(res.Body)
+	fmt.Printf("bodyResponse %s\n\n", string(bodyResponse))
 	if res.StatusCode > 202 {
 		var errAPI Error
 		err = json.Unmarshal(bodyResponse, &errAPI)

@@ -161,16 +161,52 @@ func TestCashOut(t *testing.T) {
 func TestGetPix(t *testing.T) {
 	godotenv.Load(".env.test")
 
-	client := bankly.NewClient(os.Getenv("ENV"))
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().PixCashoutRead, false)
+	dir, err := os.Getwd()
 	if err != nil {
-		t.Errorf("err : %s", err)
+		t.Errorf("Getwd: %v", err)
 		return
 	}
-	client.SetBearer(responseToken.AccessToken)
-	response, errApi, err := client.Pix().Get(&bankly.PixCashOutGet{
-		Account:            "199265",
-		AuthenticationCode: "e8b1eb27-5c6b-45be-9d8d-cc05b4c3a8fc",
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		t.Errorf("could not load certificate: %v", err)
+		return
+	}
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	client.SetCertificateMtls(certificate)
+	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
+		GrantTypes:              []string{"client_credentials"},
+		TlsClientAuthSubjectDn:  os.Getenv("BANKLY_SUBJECT_DN"),
+		TokenEndpointAuthMethod: "tls_client_auth",
+		ResponseTypes:           []string{"access_token"},
+		CompanyKey:              os.Getenv("COMPANYKEY"),
+		Scope:                   bankly.GetScope().PixCashoutRead,
+	})
+
+	if err != nil {
+		t.Errorf("err : responseMtls %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi responseMtls : %#v", errApi.Message)
+		return
+	}
+
+	clientPix := bankly.NewClient(os.Getenv("ENV"))
+	clientPix.SetCertificateMtls(certificate)
+	responseTokenPix, err := clientPix.RequestToken(responseMtls.ClientID, "", bankly.GetScope().PixCashoutRead, true)
+	if err != nil {
+		t.Errorf("err : responseTokenPix%s", err)
+		return
+	}
+
+	clientPix.SetBearer(responseTokenPix.AccessToken)
+	clientPix.SetCertificateMtls(certificate)
+
+	response, errApi, err := clientPix.Pix().Get(&bankly.PixCashOutGet{
+		Account:            "44409281",
+		AuthenticationCode: "0f653f1b-d7f9-4297-ac1d-be1ed4921d33",
 	})
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -181,7 +217,7 @@ func TestGetPix(t *testing.T) {
 		return
 	}
 	body, _ := json.Marshal(response)
-	t.Errorf("response : %s", string(body))
+	t.Errorf("\n\nresponse : %s\n\n", string(body))
 	if response == nil {
 		t.Error("response is null")
 		return
