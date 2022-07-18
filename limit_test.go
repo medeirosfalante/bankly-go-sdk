@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"crypto/tls"
 	"os"
 	"testing"
 
@@ -10,14 +11,49 @@ import (
 
 func TestGetLimit(t *testing.T) {
 	godotenv.Load(".env.test")
-	client := bankly.NewClient(os.Getenv("ENV"))
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().LimitsRead, false)
+
+	dir, err := os.Getwd()
 	if err != nil {
-		t.Errorf("err token : %s", err)
+		t.Errorf("Getwd: %v", err)
 		return
 	}
-	client.SetBearer(responseToken.AccessToken)
-	response, errApi, err := client.Limit().Get(&bankly.LimitGet{
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		t.Errorf("could not load certificate: %v", err)
+		return
+	}
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	client.SetCertificateMtls(certificate)
+	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
+		GrantTypes:              []string{"client_credentials"},
+		TlsClientAuthSubjectDn:  os.Getenv("BANKLY_SUBJECT_DN"),
+		TokenEndpointAuthMethod: "tls_client_auth",
+		ResponseTypes:           []string{"access_token"},
+		CompanyKey:              os.Getenv("COMPANYKEY"),
+		Scope:                   bankly.GetScope().LimitsRead,
+	})
+
+	if err != nil {
+		t.Errorf("err : responseMtls %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi responseMtls : %#v", errApi.Message)
+		return
+	}
+
+	clientLimits := bankly.NewClient(os.Getenv("ENV"))
+	clientLimits.SetCertificateMtls(certificate)
+	responseTokenPix, err := clientLimits.RequestToken(responseMtls.ClientID, "", bankly.GetScope().LimitsRead, true)
+	if err != nil {
+		t.Errorf("err : responseTokenPix%s", err)
+		return
+	}
+	clientLimits.SetBearer(responseTokenPix.AccessToken)
+	clientLimits.SetCertificateMtls(certificate)
+	response, errApi, err := clientLimits.Limit().Get(&bankly.LimitGet{
 		DocumentNumber: "41246542000126",
 		FeatureName:    "SPI",
 		CycleType:      bankly.GetLimitType().Monthly,

@@ -1,6 +1,7 @@
 package bankly_test
 
 import (
+	"crypto/tls"
 	"fmt"
 	"os"
 	"testing"
@@ -13,26 +14,61 @@ import (
 func TestGetEvent(t *testing.T) {
 	godotenv.Load(".env.test")
 
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Errorf("Getwd: %v", err)
+		return
+	}
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		t.Errorf("could not load certificate: %v", err)
+		return
+	}
 	client := bankly.NewClient(os.Getenv("ENV"))
-	responseToken, err := client.RequestToken(os.Getenv("BANKLY_CLIENT_ID"), os.Getenv("BANKLY_CLIENT_SECRET"), bankly.GetScope().EventsRead, false)
+
+	client.SetCertificateMtls(certificate)
+	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
+		GrantTypes:              []string{"client_credentials"},
+		TlsClientAuthSubjectDn:  os.Getenv("BANKLY_SUBJECT_DN"),
+		TokenEndpointAuthMethod: "tls_client_auth",
+		ResponseTypes:           []string{"access_token"},
+		CompanyKey:              os.Getenv("COMPANYKEY"),
+		Scope:                   bankly.GetScope().EventsRead,
+	})
+
+	if err != nil {
+		t.Errorf("err : responseMtls %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi responseMtls : %#v", errApi.Message)
+		return
+	}
+
+	clientPix := bankly.NewClient(os.Getenv("ENV"))
+	clientPix.SetCertificateMtls(certificate)
+	responseTokenPix, err := clientPix.RequestToken(responseMtls.ClientID, "", bankly.GetScope().EventsRead, true)
+	if err != nil {
+		t.Errorf("err : responseTokenPix%s", err)
+		return
+	}
+
+	clientPix.SetBearer(responseTokenPix.AccessToken)
+	clientPix.SetCertificateMtls(certificate)
+	begin, err := time.Parse(time.RFC3339, "2022-06-22T00:00:01+00:00")
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
 	}
-	client.SetBearer(responseToken.AccessToken)
-	begin, err := time.Parse(time.RFC3339, "2022-03-29T12:00:01+00:00")
+	end, err := time.Parse(time.RFC3339, "2022-06-22T23:59:01+00:00")
 	if err != nil {
 		t.Errorf("err : %s", err)
 		return
 	}
-	end, err := time.Parse(time.RFC3339, "2022-03-29T23:00:01+00:00")
-	if err != nil {
-		t.Errorf("err : %s", err)
-		return
-	}
-	response, errApi, err := client.Event().Get(&bankly.EventGetRequest{
+	response, errApi, err := clientPix.Event().Get(&bankly.EventGetRequest{
 		Branch:         "0001",
-		Account:        "44409281",
+		Account:        "88192849",
 		Page:           "1",
 		PageSize:       "100",
 		IncludeDetails: true,
@@ -56,6 +92,7 @@ func TestGetEvent(t *testing.T) {
 	}
 
 	for _, item := range *response {
+		fmt.Printf("Amount : \n%f\n", item.Amount)
 		fmt.Printf("Amount : \n%f\n", item.Amount)
 	}
 }
