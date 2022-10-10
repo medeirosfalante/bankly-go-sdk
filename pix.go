@@ -105,6 +105,7 @@ type BrcodeRequest struct {
 	AdditionalData string    `json:"additionalData,omitempty"`
 	Location       *Location `json:"location"`
 	RecipientName  string    `json:"recipientName"`
+	OwnerDocument  string
 }
 
 type Location struct {
@@ -121,7 +122,7 @@ type GetBercodeResponse struct {
 	OwnerDocument string
 }
 
-//Pix - Instance de Pix
+// Pix - Instance de Pix
 func (c *Bankly) Pix() *Pix {
 	return &Pix{client: c}
 }
@@ -167,6 +168,18 @@ func (a *Pix) CreateKey(req *PixCreateKeyRequest) (*PixKeyResponse, *Error, erro
 	return response, nil, nil
 }
 
+func (a *Pix) DeleteKey(key string) (bool, *Error, error) {
+	uuid := uuid.NewV4()
+	err, errApi := a.client.RequestPix("DELETE", fmt.Sprintf("pix/entries/%s", key), uuid.String(), "", nil, nil)
+	if err != nil {
+		return false, nil, err
+	}
+	if errApi != nil {
+		return false, errApi, nil
+	}
+	return true, nil, nil
+}
+
 func (a *Pix) GetKey(addressingKeyValue string, ownerDocument string) (*PixKeyResponse, *Error, error) {
 	var response *PixKeyResponse
 	uuid := uuid.NewV4()
@@ -196,7 +209,7 @@ func (a *Pix) CreateBrcode(req *BrcodeRequest) (*BrcodeResponse, *Error, error) 
 	var response *BrcodeResponse
 	uuid := uuid.NewV4()
 	data, _ := json.Marshal(req)
-	err, errApi := a.client.RequestPix("POST", "pix/qrcodes", uuid.String(), "", data, &response)
+	err, errApi := a.client.RequestPix("POST", "pix/qrcodes", uuid.String(), req.OwnerDocument, data, &response)
 	if err != nil {
 		return nil, nil, err
 	}

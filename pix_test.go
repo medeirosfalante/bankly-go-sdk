@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/medeirosfalante/bankly-go-sdk"
@@ -205,8 +206,8 @@ func TestGetPix(t *testing.T) {
 	clientPix.SetCertificateMtls(certificate)
 
 	response, errApi, err := clientPix.Pix().Get(&bankly.PixCashOutGet{
-		Account:            "44409281",
-		AuthenticationCode: "0f653f1b-d7f9-4297-ac1d-be1ed4921d33",
+		Account:            "88069990",
+		AuthenticationCode: "d0540e2f-79a7-438c-a73e-b2d3018705c8",
 	})
 	if err != nil {
 		t.Errorf("err : %s", err)
@@ -222,6 +223,71 @@ func TestGetPix(t *testing.T) {
 		t.Error("response is null")
 		return
 	}
+}
+
+func TestDeletePix(t *testing.T) {
+	godotenv.Load(".env.test")
+
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Errorf("Getwd: %v", err)
+		return
+	}
+
+	certificate, err := tls.LoadX509KeyPair(dir+"/cert/client.crt", dir+"/cert/client.key")
+	if err != nil {
+		t.Errorf("could not load certificate: %v", err)
+		return
+	}
+	client := bankly.NewClient(os.Getenv("ENV"))
+
+	client.SetCertificateMtls(certificate)
+	responseMtls, errApi, err := client.Mtls().RegisterClientID(&bankly.RequestRegisterClientID{
+		GrantTypes:              []string{"client_credentials"},
+		TlsClientAuthSubjectDn:  os.Getenv("BANKLY_SUBJECT_DN"),
+		TokenEndpointAuthMethod: "tls_client_auth",
+		ResponseTypes:           []string{"access_token"},
+		CompanyKey:              os.Getenv("COMPANYKEY"),
+		Scope:                   bankly.GetScope().PixEntriesDelete,
+	})
+
+	if err != nil {
+		t.Errorf("err : responseMtls %s", err)
+		return
+	}
+	if errApi != nil {
+		t.Errorf("errApi responseMtls : %#v", errApi.Message)
+		return
+	}
+
+	clientPix := bankly.NewClient(os.Getenv("ENV"))
+	clientPix.SetCertificateMtls(certificate)
+	responseTokenPix, err := clientPix.RequestToken(responseMtls.ClientID, "", bankly.GetScope().PixEntriesDelete, true)
+	if err != nil {
+		t.Errorf("err : responseTokenPix%s", err)
+		return
+	}
+
+	clientPix.SetBearer(responseTokenPix.AccessToken)
+	clientPix.SetCertificateMtls(certificate)
+
+	var list = []string{"6b78f747-463c-4f87-875b-3b6a06ea6bec", "c1384157-994f-48e3-a1ea-2db9e9fa00a1", "5ce078ec-002f-4147-ad6a-274b0c5b766d", "69abd2a3-f7d1-4d72-af1b-32b2fad408ad", "8bec84d9-a79a-4a6c-9b04-1e92ab1419ab", "a9c73e1d-8b18-482e-8384-34b8eb195ba6", "916c5dd7-750e-409e-91a7-2f79dd76151f", "eeae784a-46d4-4bf6-8954-f0fc0492286d"}
+
+	for _, item := range list {
+		clientPix.Pix().DeleteKey(item)
+		time.Sleep(time.Second * 3)
+	}
+
+	// _, errApi, err = clientPix.Pix().DeleteKey("dbb18a88-0ab0-4a5f-8118-b1e52f760acc")
+	// if err != nil {
+	// 	t.Errorf("err : %s", err)
+	// 	return
+	// }
+	// if errApi != nil {
+	// 	t.Errorf("errApi : %#v", errApi)
+	// 	return
+	// }
+
 }
 
 func TestCreateBrCode(t *testing.T) {
